@@ -6,6 +6,7 @@ function Profile() {
   const navigate = useNavigate();
 
   // Estado dos campos do perfil
+  const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -27,7 +28,7 @@ function Profile() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("first_name, last_name, phone, birth_date")
+        .select("email, first_name, last_name, phone, birth_date")
         .eq("id", userId)
         .single();
 
@@ -37,6 +38,7 @@ function Profile() {
       }
 
       if (data) {
+        setEmail(data.email || "");
         setFirstName(data.first_name || "");
         setLastName(data.last_name || "");
         setPhone(data.phone || "");
@@ -93,6 +95,9 @@ function Profile() {
     <div style={{ marginTop: "80px", textAlign: "center" }}>
       <h2>Perfil do Utilizador</h2>
       {message && <p>{message}</p>}
+
+        {/* Email apenas leitura */}
+        <p><strong>Email:</strong> {email}</p>
 
       <form onSubmit={handleUpdateProfile}>
         <label>Primeiro Nome:</label> <br />

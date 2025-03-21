@@ -16,14 +16,14 @@ function Logout() {
       // volta para Home
       navigate("/");
     } else {
-      console.error("Erro ao fazer sign out:", error.message);
+      console.error("Erro ao fazer logout:", error.message);
     }
   };
 
   return (
     <>
       <Header />
-      
+
       <div style={{ marginTop: "80px", textAlign: "center" }}>
         <h1>Deseja terminar sessão ?</h1>
         <p>Clica no botão abaixo para confirmar logout</p>
