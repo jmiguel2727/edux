@@ -7,8 +7,11 @@ import logo from "/src/assets/logo_edux.png";
 export default function Header() {
   return (
     <header 
-      className="d-flex align-items-center justify-content-between p-3 w-100 fixed-top" 
-      style={{ backgroundColor: '#FAFFD5' }}
+      className="d-flex align-items-center justify-content-between p-3 w-100"
+      style={{
+        backgroundColor: '#FFFFFF', 
+        boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+      }}
     >
       {/* Logo */}
       <div className="ms-5">
@@ -22,11 +25,10 @@ export default function Header() {
       
       {/* Menu de navegação */}
       <div className="d-flex align-items-center gap-3 ms-5 me-5">
-        {/* Exemplos de links (por enquanto '#' só como placeholders) */}
-        <a href="#" className="text-dark text-decoration-none fw-medium">Destaques</a>
-        <a href="#" className="text-dark text-decoration-none fw-medium">Categorias</a>
+        <Link to="/destaques" className="text-dark text-decoration-none fw-medium">Destaques</Link>
+        <Link to="#" className="text-dark text-decoration-none fw-medium">Categorias</Link>
         <Link to="/logout" className="text-dark text-decoration-none fw-medium">Logout</Link>
-
+        <Link to="/profile" className="text-dark text-decoration-none fw-medium">Perfil</Link>
         <FaRegUserCircle size={30} />
       </div>
     </header>

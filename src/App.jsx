@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Destaques from "./pages/Destaques";
 import Logout from "./pages/Logout";
+import Profile from "./pages/Profile";
 import Wrapper from "./pages/Wrapper";
 
 function App() {
@@ -25,9 +26,11 @@ function App() {
         <Route path="/destaques" element={<Destaques />} />
 
         {/* Logout protegido: só acessível a utilizadores autenticados */}
-        <Route path="/logout" element={<Wrapper> <Logout /> </Wrapper>}
+        <Route path="/logout" element={<Wrapper> <Logout /> </Wrapper>} />
 
-      />
+        {/* Profile protegido */}
+        <Route path="/profile" element={ <Wrapper> <Profile /> </Wrapper>} />
+
       </Routes>
     </BrowserRouter>
   );

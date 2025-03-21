@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import supabase from "../helper/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import Header from "../components/Header";
 
 function Logout() {
   const navigate = useNavigate();
@@ -20,11 +21,15 @@ function Logout() {
   };
 
   return (
-    <div style={{ marginTop: "80px", textAlign: "center" }}>
-      <h1>Deseja terminar sessão ?</h1>
-      <p>Clica no botão abaixo para confirmar logout</p>
-      <button onClick={signOut}>Confirmar Logout</button>
-    </div>
+    <>
+      <Header />
+      
+      <div style={{ marginTop: "80px", textAlign: "center" }}>
+        <h1>Deseja terminar sessão ?</h1>
+        <p>Clica no botão abaixo para confirmar logout</p>
+        <button onClick={signOut}>Confirmar Logout</button>
+      </div>
+    </>
   );
 }
 
