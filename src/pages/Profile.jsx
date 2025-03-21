@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
+import Header from "../components/Header";
 
 function Profile() {
   const navigate = useNavigate();
 
-  // Estado dos campos do perfil
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -14,7 +14,6 @@ function Profile() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  // Obter dados do utilizador ao carregar a página
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -49,7 +48,6 @@ function Profile() {
     fetchProfile();
   }, [navigate]);
 
-  // Guardar alterações no perfil
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -62,11 +60,11 @@ function Profile() {
       return;
     }
 
-    // Atualizar ou criar perfil
     const { error } = await supabase
       .from("profiles")
       .upsert({
         id: userId,
+        email: email,
         first_name: firstName,
         last_name: lastName,
         phone,
@@ -78,7 +76,6 @@ function Profile() {
       return;
     }
 
-    // Atualizar password se for preenchida
     if (password) {
       const { error: passError } = await supabase.auth.updateUser({ password });
       if (passError) {
@@ -92,33 +89,37 @@ function Profile() {
   };
 
   return (
-    <div style={{ marginTop: "80px", textAlign: "center" }}>
-      <h2>Perfil do Utilizador</h2>
-      {message && <p>{message}</p>}
+    <>
+      <Header /> {/* Header visível no topo da página */}
 
-        {/* Email apenas leitura */}
-        <p><strong>Email:</strong> {email}</p>
+      <div style={{ marginTop: "100px", textAlign: "center" }}>
+        <h2>Perfil do Utilizador</h2>
+        {message && <p>{message}</p>}
 
-      <form onSubmit={handleUpdateProfile}>
-        <label>Primeiro Nome:</label> <br />
-        <input type="text"value={firstName}onChange={(e) => setFirstName(e.target.value)}/> <br /><br />
+        <form onSubmit={handleUpdateProfile}>
 
-        <label>Segundo Nome:</label> <br />
-        <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} /> <br /><br />
+            <label>Email:</label><br />
+            <input type="email" value={email} disabled /><br /><br />
+            
+            <label>Primeiro Nome:</label><br />
+            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} /><br /><br />
 
-        <label>Telemóvel:</label> <br />
-        <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} /> <br /><br />
+            <label>Segundo Nome:</label><br />
+            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} /><br /><br />
 
-        <label>Data de Nascimento:</label> <br />
-        <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} /> <br /><br /> <hr />
+            <label>Telemóvel:</label><br />
+            <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} /><br /><br />
 
-        <label>Redefinir Password (opcional):</label> <br />
-        <input type="password" placeholder="Nova password" value={password} onChange={(e) => setPassword(e.target.value)} /> <br /><br />
+            <label>Data de Nascimento:</label><br />
+            <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} /><br /><br />
 
-        <button type="submit">Guardar Alterações</button>
+            <label>Redefinir Password (opcional):</label><br />
+            <input type="password" placeholder="Nova password" value={password} onChange={(e) => setPassword(e.target.value)} /><br /><br />
 
-      </form>
-    </div>
+            <button type="submit">Guardar Alterações</button>
+        </form>
+      </div>
+    </>
   );
 }
 
