@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 function Home() {
   useEffect(() => {
-    document.title = "Home | Edux";
+    document.title = "Home";
   }, []);
 
   return (

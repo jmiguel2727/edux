@@ -2,12 +2,13 @@ import React, { useEffect } from "react";
 import supabase from "../helper/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 function Logout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Terminar sessão | Edux";
+    document.title = "Terminar sessão";
   }, []);
 
   const signOut = async () => {
@@ -29,6 +30,7 @@ function Logout() {
         <p>Clica no botão abaixo para confirmar logout</p>
         <button onClick={signOut}>Confirmar Logout</button>
       </div>
+      <Footer />
     </>
   );
 }

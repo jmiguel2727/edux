@@ -9,7 +9,7 @@ function Login() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    document.title = "Iniciar sessão | Edux";
+    document.title = "Iniciar sessão";
   }, []);
 
   const handleSubmit = async (event) => {

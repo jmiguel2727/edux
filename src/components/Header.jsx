@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaRegUserCircle } from "react-icons/fa";
+import { CiUser } from "react-icons/ci";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import logo from "/src/assets/logo_edux.png";
@@ -26,7 +26,8 @@ export default function Header() {
 
       {/* Logo */}
       <div className="ms-5">
-        <img src={logo} alt="Edux Logo" className="rounded-circle" style={{ width: "90px", height: "auto" }} />
+        <Link to="/destaques">
+          <img src={logo} alt="Edux Logo" className="rounded-circle" style={{ width: "75px", height: "auto" }}  /> </Link>
       </div>
 
       {/* Menu de navegação */}
@@ -36,7 +37,7 @@ export default function Header() {
 
         {/* Ícone do utilizador */}
         <div className="position-relative user-menu">
-          <FaRegUserCircle size={30} className="cursor-pointer" onClick={() => setIsOpen(!isOpen)} />
+        <CiUser size={30} className="cursor-pointer" onClick={() => setIsOpen(!isOpen)} />
 
           {/*  Dropdown do utilizador */}
           {isOpen && (

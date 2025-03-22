@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
 import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 function Profile() {
   const navigate = useNavigate();
@@ -119,6 +120,7 @@ function Profile() {
             <button type="submit">Guardar Alterações</button>
         </form>
       </div>
+      <Footer />
     </>
   );
 }

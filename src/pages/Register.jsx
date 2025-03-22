@@ -8,7 +8,7 @@ function Register() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    document.title = "Criar conta | Edux";
+    document.title = "Criar conta";
   }, []);
 
   const handleSubmit = async (event) => {
