@@ -1,35 +1,53 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaRegUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 import logo from "/src/assets/logo_edux.png";
 
 export default function Header() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Fecha o dropdown ao clicar fora
+  useEffect(() => {
+    const closeDropdown = (event) => {
+      if (!event.target.closest(".user-menu")) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("click", closeDropdown);
+    return () => document.removeEventListener("click", closeDropdown);
+  }, []);
+
   return (
     <header 
       className="d-flex align-items-center justify-content-between p-3 w-100"
-      style={{
-        backgroundColor: '#FFFFFF', 
-        boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
-      }}
-    >
+      style={{ backgroundColor: "#FFFFFF", boxShadow: "0 4px 10px rgba(0,0,0,0.2)", position: "relative" }}>
+
       {/* Logo */}
       <div className="ms-5">
-        <img 
-          src={logo} 
-          alt="Edux Logo" 
-          className="rounded-circle" 
-          style={{ width: '90px', height: 'auto' }} 
-        />
+        <img src={logo} alt="Edux Logo" className="rounded-circle" style={{ width: "90px", height: "auto" }} />
       </div>
-      
+
       {/* Menu de navegação */}
       <div className="d-flex align-items-center gap-3 ms-5 me-5">
         <Link to="/destaques" className="text-dark text-decoration-none fw-medium">Destaques</Link>
         <Link to="#" className="text-dark text-decoration-none fw-medium">Categorias</Link>
-        <Link to="/logout" className="text-dark text-decoration-none fw-medium">Logout</Link>
-        <Link to="/profile" className="text-dark text-decoration-none fw-medium">Perfil</Link>
-        <FaRegUserCircle size={30} />
+
+        {/* Ícone do utilizador */}
+        <div className="position-relative user-menu">
+          <FaRegUserCircle size={30} className="cursor-pointer" onClick={() => setIsOpen(!isOpen)} />
+
+          {/*  Dropdown do utilizador */}
+          {isOpen && (
+            <div className="position-absolute bg-dark text-white rounded shadow" style={{ top: "40px",  right: "0",  width: "150px", zIndex: 1000, padding: "10px" }}>
+              
+              <Link to="/profile" className="d-block text-white text-decoration-none p-2">Perfil</Link>
+              <Link to="/logout" className="d-block text-white text-decoration-none p-2">Logout</Link>
+
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
