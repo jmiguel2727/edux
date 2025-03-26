@@ -1,43 +1,45 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Criar conta";
+    document.title = "Criar conta | EDUX";
   }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage("");
+    setLoading(true);
 
-    // 1. Criar utilizador com autenticação do Supabase
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
 
     if (signUpError) {
+      setLoading(false);
       setMessage(signUpError.message);
       return;
     }
 
     const user = signUpData?.user;
-
     if (!user) {
-      setMessage("Erro: não foi possível obter os dados do utilizador.");
+      setLoading(false);
+      setMessage("Erro ao obter dados do utilizador.");
       return;
     }
 
-    // 2. Criar perfil associado
     const { error: profileError } = await supabase.from("profiles").insert([
       {
         id: user.id,
-        email: user.email, // ← aqui guardamos o email
+        email: user.email,
         first_name: "",
         last_name: "",
         phone: "",
@@ -48,28 +50,38 @@ function Register() {
     if (profileError) {
       console.error("Erro ao criar perfil:", profileError.message);
       setMessage("Conta criada, mas ocorreu um erro ao criar o perfil.");
-    } else {
-      setMessage("Conta e perfil criados com sucesso!");
+      setLoading(false);
+      return;
     }
 
-    setEmail("");
-    setPassword("");
+    // Sucesso: redirecionar após pequeno delay
+    setTimeout(() => {
+      navigate("/login");
+    }, 1000);
   };
 
   return (
     <div style={{ marginTop: "80px", textAlign: "center" }}>
       <h2>Regista-te</h2>
-      {message && <p>{message}</p>}
 
-      <form onSubmit={handleSubmit}>
+      {message && <p className="text-danger">{message}</p>}
 
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required /> <br />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required /> <br />
-        <button type="submit">Criar conta</button>
+      {loading ? (
+        <div className="text-center mt-4">
+          <div className="spinner-border text-primary" role="status"></div>
+          <p className="mt-2">A criar a tua conta...</p>
+        </div>
+      ) : (
+        <>
+          <form onSubmit={handleSubmit}>
+            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required/><br />
+            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required /><br />
+            <button type="submit">Criar conta</button>
+          </form>
 
-      </form>
-
-      <p>Já tens conta? <Link to="/login">Iniciar sessão</Link></p>
+          <p>Já tens conta? <Link to="/login">Iniciar sessão</Link></p>
+        </>
+      )}
     </div>
   );
 }

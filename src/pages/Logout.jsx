@@ -1,38 +1,20 @@
-import React, { useEffect } from "react";
-import supabase from "../helper/supabaseClient";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import supabase from "../helper/supabaseClient";
 
 function Logout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Terminar sessão";
-  }, []);
+    const logout = async () => {
+      await supabase.auth.signOut();
+      navigate("/"); // ou "/" se preferires
+    };
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-      // volta para Home
-      navigate("/");
-    } else {
-      console.error("Erro ao fazer logout:", error.message);
-    }
-  };
+    logout();
+  }, [navigate]);
 
-  return (
-    <>
-      <Header />
-
-      <div style={{ marginTop: "80px", textAlign: "center" }}>
-        <h1>Deseja terminar sessão ?</h1>
-        <p>Clica no botão abaixo para confirmar logout</p>
-        <button onClick={signOut}>Confirmar Logout</button>
-      </div>
-      <Footer />
-    </>
-  );
+  return null; // não mostra nada
 }
 
 export default Logout;
