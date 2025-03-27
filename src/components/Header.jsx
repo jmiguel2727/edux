@@ -3,7 +3,7 @@ import { CiUser } from "react-icons/ci";
 import { IoIosLogOut } from "react-icons/io";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import logo from "/src/assets/logo_edux.png";
+import logo from "/src/assets/logo_edux_dark.png";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,6 +44,7 @@ export default function Header() {
           {isOpen && (
             <div className="position-absolute bg-dark text-white rounded shadow" style={{ top: "40px", right: "0", width: "150px", zIndex: 1000, padding: "10px" }}>
               <Link to="/profile" className="d-block text-white text-decoration-none p-2">Perfil</Link>
+              <Link to="/subscriptions" className="d-block text-white text-decoration-none p-2">Subscrições</Link>
               <Link to="/logout" className="d-flex align-items-center gap-2 text-white text-decoration-none p-2">Logout<IoIosLogOut size={20} /></Link>
             </div>
           )}

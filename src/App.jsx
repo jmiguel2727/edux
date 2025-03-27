@@ -10,8 +10,10 @@ import Sobre from "./pages/Sobre";
 import Termos from "./pages/Termos";
 import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
+import Subscriptions from "./pages/Subscriptions";
 import AdminCursos from "./pages/AdminCursos";
-import Wrapper from "./components/Wrapper"; // Unificado
+import CriarCurso from "./pages/CriarCurso";
+import Wrapper from "./components/Wrapper";
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
         <Route path="/profile" element={<Wrapper><Profile /></Wrapper>} />
         <Route path="/sobre" element={<Wrapper><Sobre /> </Wrapper>} />
         <Route path="/termos" element={<Wrapper><Termos /> </Wrapper>} />
+        <Route path="/subscriptions" element={<Wrapper><Subscriptions /> </Wrapper>} />
+        <Route path="/criar-curso" element={<Wrapper><CriarCurso /> </Wrapper>} />
 
         {/* Páginas exclusivas de administração */}
         <Route path="/admin" element={<Wrapper><Admin /></Wrapper>} />

@@ -50,12 +50,14 @@ export default function AdminSidebar({ children }) {
       >
         {/* Logótipo */}
         <div className="w-100 d-flex justify-content-center mb-4">
-          <img
-            src={logo}
-            alt="EDUX Logo"
-            className="rounded-circle"
-            style={{ width: "50px" }}
-          />
+          <Link to="/admin">
+            <img
+              src={logo}
+              alt="EDUX Logo"
+              className="rounded-circle"
+              style={{ width: "50px", cursor: "pointer" }}
+            />
+          </Link>
         </div>
 
         {/* Navegação */}

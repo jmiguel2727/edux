@@ -16,9 +16,10 @@ function Profile() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    document.title = "Perfil | EDUX";
+
     const fetchProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
       if (!session) {
         navigate("/login");
         return;
@@ -61,16 +62,14 @@ function Profile() {
       return;
     }
 
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({
-        id: userId,
-        email: email,
-        first_name: firstName,
-        last_name: lastName,
-        phone,
-        birth_date: birthDate || null,
-      });
+    const { error } = await supabase.from("profiles").upsert({
+      id: userId,
+      email,
+      first_name: firstName,
+      last_name: lastName,
+      phone,
+      birth_date: birthDate || null,
+    });
 
     if (error) {
       setMessage(`Erro ao atualizar perfil: ${error.message}`);
@@ -91,35 +90,56 @@ function Profile() {
 
   return (
     <>
-      <Header /> {/* Header visível no topo da página */}
+      <Header />
 
-      <div style={{ marginTop: "100px", textAlign: "center" }}>
-        <h2>Perfil do Utilizador</h2>
-        {message && <p>{message}</p>}
+      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+        <div className="card shadow-lg p-5 border-0" style={{ maxWidth: "550px", width: "100%", marginTop: "80px", marginBottom: "80px" }}>
+          <div className="text-center mb-4">
+            <h2 className="fw-bold text-dark">Perfil do Utilizador</h2>
+          </div>
 
-        <form onSubmit={handleUpdateProfile}>
+          {message && (
+            <div className={`alert ${message.includes("Erro") ? "alert-danger" : "alert-success"}`}>
+              {message}
+            </div>
+          )}
 
-            <label>Email:</label><br />
-            <input type="email" value={email} disabled /><br /><br />
-            
-            <label>Primeiro Nome:</label><br />
-            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} /><br /><br />
+          <form onSubmit={handleUpdateProfile}>
+            <div className="mb-3">
+              <label className="form-label">Email</label>
+              <input type="email" className="form-control" value={email} disabled />
+            </div>
 
-            <label>Segundo Nome:</label><br />
-            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} /><br /><br />
+            <div className="mb-3">
+              <label className="form-label">Primeiro Nome</label>
+              <input type="text" className="form-control" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            </div>
 
-            <label>Telemóvel:</label><br />
-            <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} /><br /><br />
+            <div className="mb-3">
+              <label className="form-label">Último Nome</label>
+              <input type="text" className="form-control" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            </div>
 
-            <label>Data de Nascimento:</label><br />
-            <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} /><br /><br />
+            <div className="mb-3">
+              <label className="form-label">Telemóvel</label>
+              <input type="text" className="form-control" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
 
-            <label>Redefinir Password (opcional):</label><br />
-            <input type="password" placeholder="Nova password" value={password} onChange={(e) => setPassword(e.target.value)} /><br /><br />
+            <div className="mb-3">
+              <label className="form-label">Data de Nascimento</label>
+              <input type="date" className="form-control" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+            </div>
 
-            <button type="submit">Guardar Alterações</button>
-        </form>
+            <div className="mb-4">
+              <label className="form-label">Nova Password (opcional)</label>
+              <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+
+            <button type="submit" className="btn btn-dark w-100 shadow-sm">Guardar Alterações</button>
+          </form>
+        </div>
       </div>
+
       <Footer />
     </>
   );

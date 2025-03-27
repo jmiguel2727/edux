@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import supabase from "../helper/supabaseClient";
 import { Link, useNavigate } from "react-router-dom";
+import logo from "../assets/logo_edux_dark.png";
 
 function Login() {
   const navigate = useNavigate();
@@ -17,8 +18,8 @@ function Login() {
     setMessage("");
 
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
+      email,
+      password,
     });
 
     if (error) {
@@ -28,25 +29,39 @@ function Login() {
       return;
     }
 
-    // depois do login, vai para /destaques
     if (data) {
       navigate("/destaques");
     }
   };
 
   return (
-    <div style={{ marginTop: "80px", textAlign: "center" }}>
-      <h2>Iniciar sessão</h2>
-      {message && <p>{message}</p>}
-      <form onSubmit={handleSubmit}>
+    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+      <div className="card shadow-lg p-5 border-0" style={{ maxWidth: "500px", width: "100%" }}>
+        <div className="text-center mb-4">
+          <img src={logo} alt="EDUX" style={{ width: 80 }} className="mb-3" />
+          <h2 className="fw-bold text-dark">Iniciar Sessão</h2>
+        </div>
 
-        <input onChange={(e) => setEmail(e.target.value)} value={email} type="email" placeholder="Email" required/><br />
-        <input onChange={(e) => setPassword(e.target.value)} value={password} type="password" placeholder="Password" required/><br />
-        <button type="submit">Login</button>
+        {message && <div className="alert alert-danger">{message}</div>}
 
-      </form>
-      <p>Ainda não tens conta? <Link to="/register">Regista-te</Link></p>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="text-dark">Email</label>
+            <input type="email" className="form-control" required
+              value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="mb-4">
+            <label className="text-dark">Palavra-passe</label>
+            <input type="password" className="form-control" required
+              value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+          <button type="submit" className="btn btn-dark w-100 shadow-sm">Entrar</button>
+        </form>
 
+        <p className="text-center mt-3 text-secondary">
+          Ainda não tens conta? <Link to="/register" className="text-dark">Registar</Link>
+        </p>
+      </div>
     </div>
   );
 }

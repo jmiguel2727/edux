@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
+import logo from "../assets/logo_edux_dark.png";
 
 function Register() {
   const [email, setEmail] = useState("");
@@ -54,34 +55,46 @@ function Register() {
       return;
     }
 
-    // Sucesso: redirecionar após pequeno delay
     setTimeout(() => {
       navigate("/login");
     }, 1000);
   };
 
   return (
-    <div style={{ marginTop: "80px", textAlign: "center" }}>
-      <h2>Regista-te</h2>
-
-      {message && <p className="text-danger">{message}</p>}
-
-      {loading ? (
-        <div className="text-center mt-4">
-          <div className="spinner-border text-primary" role="status"></div>
-          <p className="mt-2">A criar a tua conta...</p>
+    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+      <div className="card shadow-lg p-5 border-0" style={{ maxWidth: "500px", width: "100%" }}>
+        <div className="text-center mb-4">
+          <img src={logo} alt="EDUX" style={{ width: 80 }} className="mb-3" />
+          <h2 className="fw-bold text-dark">Criar Conta</h2>
         </div>
-      ) : (
-        <>
-          <form onSubmit={handleSubmit}>
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required/><br />
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required /><br />
-            <button type="submit">Criar conta</button>
-          </form>
 
-          <p>Já tens conta? <Link to="/login">Iniciar sessão</Link></p>
-        </>
-      )}
+        {message && <div className="alert alert-danger">{message}</div>}
+
+        {loading ? (
+          <div className="text-center">
+            <div className="spinner-border text-dark" role="status"></div>
+            <p className="mt-3 text-secondary">A criar a tua conta...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="text-dark">Email</label>
+              <input type="email" className="form-control" required
+                value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="mb-4">
+              <label className="text-dark">Password</label>
+              <input type="password" className="form-control" required
+                value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            <button type="submit" className="btn btn-dark w-100 shadow-sm">Criar Conta</button>
+          </form>
+        )}
+
+        <p className="text-center mt-3 text-secondary">
+          Já tens conta? <Link to="/login" className="text-dark">Iniciar sessão</Link>
+        </p>
+      </div>
     </div>
   );
 }

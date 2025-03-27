@@ -5,7 +5,7 @@ import { MdEmail, MdPhone } from "react-icons/md";
 
 export default function Footer() {
   return (
-    <footer className="bg-dark text-white text-center p-4 mt-5">
+    <footer className="bg-dark text-white text-center p-4">
       <div className="container">
 
         <div className="mb-3 d-flex justify-content-center gap-4 flex-wrap">
