@@ -30,7 +30,7 @@ export default function AdminSidebar({ children }) {
 
   const links = [
     { to: "/admin/users", label: "Utilizadores", icon: <FaUsers size={24} /> },
-    { to: "/admin/cursos", label: "Cursos", icon: <LuBookmarkCheck size={24} /> },
+    { to: "/admin/course", label: "Cursos", icon: <LuBookmarkCheck size={24} /> },
     { to: "/logout", label: "Logout", icon: <IoIosLogOut size={24} /> },
   ];
 

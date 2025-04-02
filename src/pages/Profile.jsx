@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
 import Header from "../components/Header";
@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 
 function Profile() {
   const navigate = useNavigate();
+  const cardRef = useRef(null);
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -73,19 +74,30 @@ function Profile() {
 
     if (error) {
       setMessage(`Erro ao atualizar perfil: ${error.message}`);
-      return;
-    }
-
-    if (password) {
-      const { error: passError } = await supabase.auth.updateUser({ password });
-      if (passError) {
-        setMessage(`Erro ao atualizar password: ${passError.message}`);
-        return;
+    } else {
+      if (password) {
+        const { error: passError } = await supabase.auth.updateUser({ password });
+        if (passError) {
+          setMessage(`Erro ao atualizar password: ${passError.message}`);
+        } else {
+          setMessage("Perfil e password atualizados com sucesso!");
+        }
+      } else {
+        setMessage("Perfil atualizado com sucesso!");
       }
     }
 
-    setMessage("Perfil atualizado com sucesso!");
     setPassword("");
+
+    // Scroll para a mensagem
+    setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+
+    // Limpa a mensagem após 1.5 segundos
+    setTimeout(() => {
+      setMessage("");
+    }, 1500);
   };
 
   return (
@@ -93,7 +105,7 @@ function Profile() {
       <Header />
 
       <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-        <div className="card shadow-lg p-5 border-0" style={{ maxWidth: "550px", width: "100%", marginTop: "80px", marginBottom: "80px" }}>
+        <div ref={cardRef} className="card shadow-lg p-5 border-0" style={{ maxWidth: "550px", width: "100%", marginTop: "80px", marginBottom: "80px" }} >
           <div className="text-center mb-4">
             <h2 className="fw-bold text-dark">Perfil do Utilizador</h2>
           </div>
@@ -131,7 +143,7 @@ function Profile() {
             </div>
 
             <div className="mb-4">
-              <label className="form-label">Nova Password (opcional)</label>
+              <label className="form-label">Alterar Password</label>
               <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
 

@@ -26,7 +26,7 @@ function Subscriptions() {
           {/* Botão "Criar curso" dentro da caixa no canto superior direito */}
           <div className="d-flex justify-content-end">
             <Link
-              to="/criar-curso"
+              to="/create-course"
               className="text-secondary d-inline-flex align-items-center gap-1 text-decoration-none"
             >
               <span className="fs-5 fw-bold">+</span>
