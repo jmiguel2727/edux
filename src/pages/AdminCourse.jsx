@@ -1,7 +1,8 @@
 import React from "react";
 import AdminSidebar from "../components/AdminSidebar";
 
-export default function AdminCursos() {
+function AdminCourse() { 
+  debugger;
   return (
     <AdminSidebar>
       <h2>Gestão de Cursos</h2>
@@ -9,3 +10,5 @@ export default function AdminCursos() {
     </AdminSidebar>
   );
 }
+
+export default AdminCourse;
