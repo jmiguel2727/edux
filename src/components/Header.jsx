@@ -45,6 +45,7 @@ export default function Header() {
             <div className="position-absolute bg-dark text-white rounded shadow" style={{ top: "40px", right: "0", width: "150px", zIndex: 1000, padding: "10px" }}>
               <Link to="/profile" className="d-block text-white text-decoration-none p-2">Perfil</Link>
               <Link to="/subscriptions" className="d-block text-white text-decoration-none p-2">Subscrições</Link>
+              <Link to="/sell-course" className="d-block text-white text-decoration-none p-2">Cursos à venda</Link>
               <Link to="/logout" className="d-flex align-items-center gap-2 text-white text-decoration-none p-2">Logout<IoIosLogOut size={20} /></Link>
             </div>
           )}

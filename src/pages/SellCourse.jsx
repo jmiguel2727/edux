@@ -3,9 +3,9 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
 
-function Subscriptions() {
+function SellCourse() {
   useEffect(() => {
-    document.title = "As Minhas Subscrições | EDUX";
+    document.title = "Cursos à venda | EDUX";
   }, []);
 
   return (
@@ -26,16 +26,16 @@ function Subscriptions() {
           {/* Botão "Criar curso" dentro da caixa no canto superior direito */}
           <div className="d-flex justify-content-end">
             <Link
-              to="/destaques"
+              to="/create-course"
               className="text-secondary d-inline-flex align-items-center gap-1 text-decoration-none"
             >
-              <span className="fw-medium">+ Subscrever </span>
+              <span className="fw-medium">+ Criar Curso </span>
             </Link>
           </div>
 
           {/* Conteúdo central */}
           <div className="d-flex justify-content-center align-items-center" style={{ height: "150px" }}>
-            <p className="text-muted mb-0">Ainda não possui cursos subscritos.</p>
+            <p className="text-muted mb-0">Ainda não possui cursos à venda.</p>
           </div>
         </div>
       </div>
@@ -45,4 +45,4 @@ function Subscriptions() {
   );
 }
 
-export default Subscriptions;
+export default SellCourse;

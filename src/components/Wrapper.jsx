@@ -44,7 +44,7 @@ export default function Wrapper({ children }) {
   const isAdmin = role === "admin";
   const path = location.pathname;
 
-  const adminRoutes = ["/admin", "/admin/users", "/admin/cursos", "/logout"];
+  const adminRoutes = ["/admin", "/admin/users", "/admin/course", "/logout"];
 
   // Se for admin mas tentou ir a página normal → redireciona para /admin
   if (isAdmin && !adminRoutes.includes(path)) {

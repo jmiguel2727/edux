@@ -12,6 +12,7 @@ import AdminUsers from "./pages/AdminUsers";
 import Subscriptions from "./pages/Subscriptions";
 import AdminCourse from "./pages/AdminCourse";
 import CreateCourse from "./pages/CreateCourse";
+import SellCourse from "./pages/SellCourse";
 import Wrapper from "./components/Wrapper";
 import Logout from "./components/Logout";
 
@@ -32,6 +33,7 @@ function App() {
         <Route path="/terms" element={<Wrapper><Terms /> </Wrapper>} />
         <Route path="/subscriptions" element={<Wrapper><Subscriptions /> </Wrapper>} />
         <Route path="/create-course" element={<Wrapper><CreateCourse /> </Wrapper>} />
+        <Route path="/sell-course" element={<Wrapper><SellCourse /> </Wrapper>} />
 
         {/* Páginas exclusivas de administração */}
         <Route path="/admin" element={<Wrapper><Admin /></Wrapper>} />
