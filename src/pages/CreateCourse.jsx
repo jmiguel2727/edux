@@ -221,7 +221,7 @@ function CreateCourse() {
 
       localStorage.removeItem("novo_curso");
       setMessage("Curso submetido com sucesso!");
-      setTimeout(() => navigate("/subscriptions"), 2000);
+      setTimeout(() => navigate("/sell-course"), 2000);
     } catch (error) {
       console.error(error);
       setMessage("Erro ao submeter curso.");
@@ -396,7 +396,7 @@ function CreateCourse() {
                 setShowExitConfirm(true);
                 setPendingNavigation(() => () => {
                   localStorage.removeItem("novo_curso");
-                  navigate("/subscriptions");
+                  navigate("/sell-course");
                 });
               }}
             >

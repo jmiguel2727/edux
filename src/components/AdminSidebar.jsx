@@ -50,7 +50,7 @@ export default function AdminSidebar({ children }) {
       >
         {/* Logótipo */}
         <div className="w-100 d-flex justify-content-center mb-4">
-          <Link to="/admin/course">
+          <Link to="/admin">
             <img
               src={logo}
               alt="EDUX Logo"

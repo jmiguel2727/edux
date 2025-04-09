@@ -9,6 +9,8 @@ function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [editUser, setEditUser] = useState(null);
+  const [sortField, setSortField] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState("desc");
   const navigate = useNavigate();
   const formSectionRef = useRef(null);
 
@@ -17,8 +19,16 @@ function AdminUsers() {
     checkSession();
   }, []);
 
+  useEffect(() => {
+    if (authorized) {
+      fetchUsers();
+    }
+  }, [sortField, sortOrder]);
+
   const checkSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
     if (!session) {
       navigate("/");
@@ -52,7 +62,21 @@ function AdminUsers() {
       return;
     }
 
-    setUsers(data);
+    const sortedData = [...data].sort((a, b) => {
+      const aVal = a[sortField];
+      const bVal = b[sortField];
+
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
+
+      if (sortOrder === "asc") {
+        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+      } else {
+        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+      }
+    });
+
+    setUsers(sortedData);
     setLoading(false);
   };
 
@@ -88,7 +112,7 @@ function AdminUsers() {
     const { error } = await supabase.rpc("atualizar_utilizador", {
       user_id: editUser.id,
       first: editUser.first_name,
-      last: editUser.last_name,
+      last: null, // remove last_name, or set it to empty
       phone_input: editUser.phone,
       birth: editUser.birth_date,
     });
@@ -108,16 +132,44 @@ function AdminUsers() {
   return (
     <AdminSidebar>
       <h2 className="mb-4">Gestão de Utilizadores</h2>
+
       {loading ? (
         <p className="text-center">A carregar utilizadores...</p>
       ) : (
         <>
+          <div className="d-flex justify-content-end mb-3 gap-3">
+            <div>
+              <label className="form-label me-2">Ordenar por:</label>
+              <select
+                className="form-select"
+                value={sortField}
+                onChange={(e) => setSortField(e.target.value)}
+              >
+                <option value="first_name">Nome</option>
+                <option value="email">Email</option>
+                <option value="created_at">Criado em</option>
+                <option value="last_sign_in_at">Último login</option>
+              </select>
+            </div>
+            <div>
+              <label className="form-label me-2">Ordem:</label>
+              <select
+                className="form-select"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+              >
+                <option value="asc">Ascendente</option>
+                <option value="desc">Descendente</option>
+              </select>
+            </div>
+          </div>
+
           <div className="table-responsive mb-4">
             <table className="table table-bordered table-striped align-middle">
               <thead className="table-dark">
                 <tr>
                   <th>Email</th>
-                  <th>Nome</th>
+                  <th>Primeiro Nome</th>
                   <th>Telefone</th>
                   <th>Data de Nascimento</th>
                   <th>Criado em</th>
@@ -129,14 +181,32 @@ function AdminUsers() {
                 {users.map((user) => (
                   <tr key={user.id}>
                     <td>{user.email}</td>
-                    <td>{user.first_name} {user.last_name}</td>
+                    <td>{user.first_name || "-"}</td>
                     <td>{user.phone || "-"}</td>
                     <td>{user.birth_date || "-"}</td>
-                    <td>{user.created_at ? new Date(user.created_at).toLocaleString() : "-"}</td>
-                    <td>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "-"}</td>
                     <td>
-                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(user)}>Editar</button>
-                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.id)}>Remover</button>
+                      {user.created_at
+                        ? new Date(user.created_at).toLocaleString()
+                        : "-"}
+                    </td>
+                    <td>
+                      {user.last_sign_in_at
+                        ? new Date(user.last_sign_in_at).toLocaleString()
+                        : "-"}
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-sm btn-warning me-2"
+                        onClick={() => handleEdit(user)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(user.id)}
+                      >
+                        Remover
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -155,17 +225,6 @@ function AdminUsers() {
                   value={editUser.first_name || ""}
                   onChange={(e) =>
                     setEditUser({ ...editUser, first_name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="mb-2">
-                <label>Último Nome:</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={editUser.last_name || ""}
-                  onChange={(e) =>
-                    setEditUser({ ...editUser, last_name: e.target.value })
                   }
                 />
               </div>
@@ -191,10 +250,16 @@ function AdminUsers() {
                   }
                 />
               </div>
-              <button className="btn btn-success me-2" onClick={handleUpdate}>
+              <button
+                className="btn btn-success me-2"
+                onClick={handleUpdate}
+              >
                 Guardar alterações
               </button>
-              <button className="btn btn-secondary" onClick={() => setEditUser(null)}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setEditUser(null)}
+              >
                 Cancelar
               </button>
             </div>
