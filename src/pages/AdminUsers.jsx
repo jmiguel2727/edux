@@ -112,7 +112,7 @@ function AdminUsers() {
     const { error } = await supabase.rpc("atualizar_utilizador", {
       user_id: editUser.id,
       first: editUser.first_name,
-      last: null, // remove last_name, or set it to empty
+      last: editUser.last_name,
       phone_input: editUser.phone,
       birth: editUser.birth_date,
     });
@@ -169,7 +169,7 @@ function AdminUsers() {
               <thead className="table-dark">
                 <tr>
                   <th>Email</th>
-                  <th>Primeiro Nome</th>
+                  <th>Nome</th>
                   <th>Telefone</th>
                   <th>Data de Nascimento</th>
                   <th>Criado em</th>
@@ -181,7 +181,7 @@ function AdminUsers() {
                 {users.map((user) => (
                   <tr key={user.id}>
                     <td>{user.email}</td>
-                    <td>{user.first_name || "-"}</td>
+                    <td>{`${user.first_name || ""} ${user.last_name || ""}`.trim() || "-"}</td>
                     <td>{user.phone || "-"}</td>
                     <td>{user.birth_date || "-"}</td>
                     <td>
@@ -225,6 +225,17 @@ function AdminUsers() {
                   value={editUser.first_name || ""}
                   onChange={(e) =>
                     setEditUser({ ...editUser, first_name: e.target.value })
+                  }
+                />
+              </div>
+              <div className="mb-2">
+                <label>Último Nome:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={editUser.last_name || ""}
+                  onChange={(e) =>
+                    setEditUser({ ...editUser, last_name: e.target.value })
                   }
                 />
               </div>

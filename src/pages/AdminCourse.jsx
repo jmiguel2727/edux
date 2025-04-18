@@ -45,7 +45,8 @@ function AdminCourse() {
         console.error(error);
         setMessage("Erro ao atualizar o status do curso.");
       } else {
-        setMessage(`Curso ${id} atualizado para '${newStatus}'.`);
+        const courseTitle = courses.find((c) => c.id === id)?.title || id;
+        setMessage(` O curso '${courseTitle}' foi ${newStatus}.`);
         // Recarrega lista
         fetchCourses();
       }

@@ -13,6 +13,8 @@ import Subscriptions from "./pages/Subscriptions";
 import AdminCourse from "./pages/AdminCourse";
 import CreateCourse from "./pages/CreateCourse";
 import SellCourse from "./pages/SellCourse";
+import CoursePreview from "./pages/CoursePreview";
+import CourseContent from "./pages/CourseContent"; 
 import Wrapper from "./components/Wrapper";
 import Logout from "./components/Logout";
 
@@ -34,6 +36,8 @@ function App() {
         <Route path="/subscriptions" element={<Wrapper><Subscriptions /> </Wrapper>} />
         <Route path="/create-course" element={<Wrapper><CreateCourse /> </Wrapper>} />
         <Route path="/sell-course" element={<Wrapper><SellCourse /> </Wrapper>} />
+        <Route path="/curso/:id" element={<Wrapper><CoursePreview /></Wrapper>} />
+        <Route path="/curso/:id/conteudo" element={<Wrapper><CourseContent /></Wrapper>} />
 
         {/* Páginas exclusivas de administração */}
         <Route path="/admin" element={<Wrapper><Admin /></Wrapper>} />

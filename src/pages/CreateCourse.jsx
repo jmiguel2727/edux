@@ -22,7 +22,6 @@ function CreateCourse() {
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [lastLocation, setLastLocation] = useState(location);
 
-  // Referência para scroll até à mensagem
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -45,7 +44,6 @@ function CreateCourse() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
-  // Detetar tentativa de mudança de página
   useEffect(() => {
     if (location !== lastLocation && !showExitConfirm) {
       setShowExitConfirm(true);
@@ -58,7 +56,6 @@ function CreateCourse() {
     }
   }, [location, lastLocation, showExitConfirm, navigate]);
 
-  // Sempre que há uma mensagem, faz scroll e limpa
   useEffect(() => {
     if (message) {
       setTimeout(() => {
@@ -131,6 +128,13 @@ function CreateCourse() {
     saveToLocalStorage();
   };
 
+  const sanitizeFileName = (name) => {
+    return name
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .replace(/[^a-zA-Z0-9_.-]/g, "_");
+  };
+
   const handleFinalizar = async () => {
     if (!title || !description || !thumbnailFile || sections.length === 0) {
       setMessage("Preenche todos os campos, adiciona thumbnail e pelo menos uma secção.");
@@ -145,20 +149,50 @@ function CreateCourse() {
     }
 
     try {
+      // Upload da thumbnail primeiro
       const ext = thumbnailFile.name.split(".").pop();
-      const fileName = `${Date.now()}.${ext}`;
+      const thumbFileName = sanitizeFileName(`${Date.now()}.${ext}`);
       const { error: thumbError } = await supabase
         .storage
         .from("course-thumbnails")
-        .upload(fileName, thumbnailFile);
+        .upload(thumbFileName, thumbnailFile);
       if (thumbError) throw thumbError;
 
       const { data: thumbUrlData } = supabase
         .storage
         .from("course-thumbnails")
-        .getPublicUrl(fileName);
+        .getPublicUrl(thumbFileName);
       const thumbnailUrl = thumbUrlData.publicUrl;
 
+      // Fazer upload dos vídeos e ficheiros primeiro
+      const uploads = [];
+      for (const section of sections) {
+        for (const item of section.items) {
+          if (!item.video) throw new Error("Item sem vídeo detectado.");
+
+          const videoName = sanitizeFileName(`${Date.now()}_${item.video.name}`);
+          uploads.push(
+            supabase.storage.from("curso-conteudos").upload(videoName, item.video).then(({ error }) => {
+              if (error) throw error;
+              item.video_path = supabase.storage.from("curso-conteudos").getPublicUrl(videoName).data.publicUrl;
+            })
+          );
+
+          if (item.file) {
+            const fileName = sanitizeFileName(`${Date.now()}_${item.file.name}`);
+            uploads.push(
+              supabase.storage.from("curso-conteudos").upload(fileName, item.file).then(({ error }) => {
+                if (error) throw error;
+                item.file_path = supabase.storage.from("curso-conteudos").getPublicUrl(fileName).data.publicUrl;
+              })
+            );
+          }
+        }
+      }
+
+      await Promise.all(uploads);
+
+      // Inserir curso apenas após uploads com sucesso
       const { data: course, error: courseError } = await supabase
         .from("courses")
         .insert({
@@ -172,49 +206,22 @@ function CreateCourse() {
         .single();
       if (courseError || !course) throw courseError;
 
+      // Inserir secções e itens
       for (const section of sections) {
         const { data: sectionData, error: secError } = await supabase
           .from("sections")
-          .insert({
-            course_id: course.id,
-            title: section.title,
-          })
+          .insert({ course_id: course.id, title: section.title })
           .select()
           .single();
         if (secError) throw secError;
 
         for (const item of section.items) {
-          if (!item.video) continue;
-          const videoName = `${Date.now()}_${item.video.name}`;
-          const { error: videoError } = await supabase.storage
-            .from("curso-conteudos")
-            .upload(videoName, item.video);
-          if (videoError) throw videoError;
-
-          const { data: videoUrlData } = supabase.storage
-            .from("curso-conteudos")
-            .getPublicUrl(videoName);
-          const videoUrl = videoUrlData.publicUrl;
-
-          let fileUrl = null;
-          if (item.file) {
-            const fileName = `${Date.now()}_${item.file.name}`;
-            const { error: fileError } = await supabase.storage
-              .from("curso-conteudos")
-              .upload(fileName, item.file);
-            if (fileError) throw fileError;
-            fileUrl = supabase.storage
-              .from("curso-conteudos")
-              .getPublicUrl(fileName).data.publicUrl;
-          }
-
           const { error: insertError } = await supabase.from("items").insert({
             section_id: sectionData.id,
             title: item.title,
-            video_path: videoUrl,
-            file_path: fileUrl,
+            video_path: item.video_path,
+            file_path: item.file_path || null,
           });
-
           if (insertError) throw insertError;
         }
       }
