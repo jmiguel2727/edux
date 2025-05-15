@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import supabase from "../helper/supabaseClient";
+import { useUserRedirect } from "../components/UserRedirect";
 
 function CoursePreview() {
   const { id } = useParams();
@@ -30,19 +31,27 @@ function CoursePreview() {
 
     if (cursoError || !cursoData) {
       console.error("Erro ao carregar curso:", cursoError?.message);
+      setCurso(null);
       setLoading(false);
       return;
     }
 
     setCurso(cursoData);
 
-    const { data: perfil } = await supabase
-      .from("profiles")
-      .select("first_name, last_name")
-      .eq("id", cursoData.creator_id)
-      .single();
+    try {
+      const { data: perfil, error: perfilError } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", cursoData.creator_id)
+        .maybeSingle();
 
-    setCriador(perfil);
+      if (!perfilError && perfil) {
+        setCriador(perfil);
+      }
+    } catch (e) {
+      console.warn("Erro ao carregar criador:", e.message);
+    }
+
     setLoading(false);
   };
 
@@ -62,6 +71,13 @@ function CoursePreview() {
   };
 
   const handleSubscribing = async () => {
+    const ok = await useUserRedirect(navigate, `/curso/${id}`);
+    if (!ok) return;
+
+    setShowConfirm(true); // só abre modal se estiver autenticado
+  };
+
+  const confirmSubscription = async () => {
     setShowConfirm(false);
 
     const { data: sessionData } = await supabase.auth.getSession();
@@ -99,12 +115,15 @@ function CoursePreview() {
               />
             )}
             <p className="text-muted">
-              Criado por: {criador ? `${criador.first_name} ${criador.last_name}` : "Desconhecido"}
+              Criado por:{" "}
+              {criador
+                ? `${criador.first_name} ${criador.last_name}`
+                : "Criador não disponível"}
             </p>
             <p>{curso.description}</p>
 
             <div className="text-end mt-4 d-flex flex-column align-items-end gap-2">
-              {isSubscribed && (
+              {isSubscribed ? (
                 <>
                   <button className="btn btn-success" disabled>
                     Subscrito
@@ -113,9 +132,8 @@ function CoursePreview() {
                     Começar curso
                   </button>
                 </>
-              )}
-              {!isSubscribed && (
-                <button className="btn btn-primary" onClick={() => setShowConfirm(true)}>
+              ) : (
+                <button className="btn btn-primary" onClick={handleSubscribing}>
                   Subscrever curso
                 </button>
               )}
@@ -130,14 +148,20 @@ function CoursePreview() {
           className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
           style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}
         >
-          <div className="bg-white p-4 rounded shadow text-center" style={{ maxWidth: "400px" }}>
+          <div
+            className="bg-white p-4 rounded shadow text-center"
+            style={{ maxWidth: "400px" }}
+          >
             <h5 className="mb-3">Confirmar subscrição</h5>
             <p className="text-muted">Queres subscrever este curso?</p>
             <div className="d-flex justify-content-center gap-3">
-              <button className="btn btn-primary" onClick={handleSubscribing}>
+              <button className="btn btn-primary" onClick={confirmSubscription}>
                 Sim, subscrever
               </button>
-              <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowConfirm(false)}
+              >
                 Cancelar
               </button>
             </div>

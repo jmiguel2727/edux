@@ -34,15 +34,23 @@ export default function AdminSidebar({ children }) {
     { to: "/logout", label: "Logout", icon: <IoIosLogOut size={24} /> },
   ];
 
+  const sidebarWidth = isOpen ? 200 : 70;
+
   return (
-    <div className="d-flex" style={{ minHeight: "100vh" }}>
+    <div className="d-flex">
       <aside
         ref={sidebarRef}
         className={`bg-dark text-white p-3 d-flex flex-column align-items-${isOpen ? "start" : "center"}`}
         style={{
-          width: isOpen ? "200px" : "70px",
+          position: "fixed",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          height: "100vh",
+          width: `${sidebarWidth}px`,
           transition: "width 0.3s",
-          cursor: !isOpen ? "pointer" : "default"
+          zIndex: 1040,
+          cursor: !isOpen ? "pointer" : "default",
         }}
         onClick={() => {
           if (!isOpen) toggleSidebar();
@@ -82,7 +90,14 @@ export default function AdminSidebar({ children }) {
         ))}
       </aside>
 
-      <main className="flex-grow-1 p-4">
+      <main
+        className="flex-grow-1 p-4"
+        style={{
+          marginLeft: `${sidebarWidth}px`,
+          transition: "margin-left 0.3s",
+          width: `calc(100% - ${sidebarWidth}px)`,
+        }}
+      >
         {children}
       </main>
     </div>

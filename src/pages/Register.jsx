@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
 import logo from "../assets/logo_edux_dark.png";
 
@@ -9,6 +9,8 @@ function Register() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/destaques";
 
   useEffect(() => {
     document.title = "Criar conta | EDUX";
@@ -56,7 +58,7 @@ function Register() {
     }
 
     setTimeout(() => {
-      navigate("/login");
+      navigate(from); // Redireciona após criação de conta
     }, 1000);
   };
 
@@ -92,7 +94,7 @@ function Register() {
         )}
 
         <p className="text-center mt-3 text-secondary">
-          Já tens conta? <Link to="/login" className="text-dark">Iniciar sessão</Link>
+          Já tens conta? <Link to="/login" state={{ from }} className="text-dark">Iniciar sessão</Link>
         </p>
       </div>
     </div>

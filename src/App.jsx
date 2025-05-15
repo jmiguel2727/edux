@@ -15,6 +15,8 @@ import CreateCourse from "./pages/CreateCourse";
 import SellCourse from "./pages/SellCourse";
 import CoursePreview from "./pages/CoursePreview";
 import CourseContent from "./pages/CourseContent"; 
+import AdminCourseEdit from "./pages/AdminCourseEdit";
+import CategoriaCursos from "./pages/CategoriaCursos";
 import Wrapper from "./components/Wrapper";
 import Logout from "./components/Logout";
 
@@ -23,12 +25,13 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Páginas públicas */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Destaques />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
 
-        {/* Páginas protegidas (user ou admin) */}
+        {/* Páginas exclusivas de user */}
         <Route path="/destaques" element={<Wrapper><Destaques /></Wrapper>} />
         <Route path="/profile" element={<Wrapper><Profile /></Wrapper>} />
         <Route path="/about" element={<Wrapper><About /> </Wrapper>} />
@@ -38,11 +41,16 @@ function App() {
         <Route path="/sell-course" element={<Wrapper><SellCourse /> </Wrapper>} />
         <Route path="/curso/:id" element={<Wrapper><CoursePreview /></Wrapper>} />
         <Route path="/curso/:id/conteudo" element={<Wrapper><CourseContent /></Wrapper>} />
+        <Route path="/categoria/:nome" element={<Wrapper><CategoriaCursos /></Wrapper>} />
+
 
         {/* Páginas exclusivas de administração */}
         <Route path="/admin" element={<Wrapper><Admin /></Wrapper>} />
         <Route path="/admin/users" element={<Wrapper><AdminUsers /></Wrapper>} />
         <Route path="/admin/course" element={<Wrapper><AdminCourse /></Wrapper>} />
+        <Route path="/admin/course-edit/:id" element={<Wrapper><AdminCourseEdit /></Wrapper>} />
+
+
       </Routes>
     </BrowserRouter>
   );

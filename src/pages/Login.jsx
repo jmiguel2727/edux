@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import supabase from "../helper/supabaseClient";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo_edux_dark.png";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/destaques";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -30,7 +33,7 @@ function Login() {
     }
 
     if (data) {
-      navigate("/destaques");
+      navigate(from); // Redireciona para a página original
     }
   };
 
@@ -59,7 +62,7 @@ function Login() {
         </form>
 
         <p className="text-center mt-3 text-secondary">
-          Ainda não tens conta? <Link to="/register" className="text-dark">Registar</Link>
+          Ainda não tens conta? <Link to="/register" state={{ from }} className="text-dark">Registar</Link>
         </p>
       </div>
     </div>

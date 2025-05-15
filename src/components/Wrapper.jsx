@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
 
@@ -14,6 +14,7 @@ export default function Wrapper({ children }) {
 
       if (!session) {
         setAuthenticated(false);
+        setRole(null);
         setLoading(false);
         return;
       }
@@ -38,23 +39,51 @@ export default function Wrapper({ children }) {
 
   if (loading) return <p>Loading...</p>;
 
-  // Não autenticado
-  if (!authenticated) return <Navigate to="/login" />;
-
-  const isAdmin = role === "admin";
   const path = location.pathname;
 
-  const adminRoutes = ["/admin", "/admin/users", "/admin/course", "/logout"];
+  // Rotas públicas (corrigidas com "/")
+  const publicRoutes = [
+    "/",
+    "/home",
+    "/login",
+    "/register",
+    "/destaques",
+    "/categoria",
+    "/coursepreview",
+    "/profile",
+    "/subscriptions",
+    "/sellcourse"
+  ];
+  const isPublic = publicRoutes.some((route) => path.startsWith(route));
 
-  // Se for admin mas tentou ir a página normal → redireciona para /admin
-  if (isAdmin && !adminRoutes.includes(path)) {
-    return <Navigate to="/admin" />;
+  // Rotas da área de administração
+  const adminRoutes = [
+    "/admin",
+    "/admin/users",
+    "/admin/course",
+    "/admin/course-edit",
+    "/logout"
+  ];
+  const isAdminRoute = adminRoutes.some((route) => path === route || path.startsWith(route + "/"));
+
+  // user (não autenticado)
+  if (!authenticated) {
+    if (isAdminRoute) return <Navigate to="/home" />; // Protege rotas de admin
+    if (isPublic) return <>{children}</>;
+    return <Navigate to="/home" />;
   }
 
-  // Se for user e tentou ir a uma página admin → redireciona para /destaques
-  if (!isAdmin && path.startsWith("/admin")) {
-    return <Navigate to="/destaques" />;
+  // user autenticado normal
+  if (authenticated && role !== "admin") {
+    if (isAdminRoute) return <Navigate to="/destaques" />; // bloqueia admin
+    return <>{children}</>;
   }
 
-  return <>{children}</>;
+  // Admin autenticado
+  if (authenticated && role === "admin") {
+    if (!isAdminRoute) return <Navigate to="/admin" />;
+    return <>{children}</>;
+  }
+
+  return null;
 }

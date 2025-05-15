@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import supabase from "../helper/supabaseClient";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUserRedirect } from "../components/UserRedirect";
 
 function Subscriptions() {
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = "As Minhas Subscrições | EDUX";
@@ -16,7 +19,14 @@ function Subscriptions() {
   const fetchCursosSubscritos = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData?.session?.user;
-    if (!user) return;
+
+    if (!user) {
+      setIsAuthenticated(false);
+      setLoading(false);
+      return;
+    }
+
+    setIsAuthenticated(true);
 
     const { data: subs, error } = await supabase
       .from("subscriptions")
@@ -55,6 +65,12 @@ function Subscriptions() {
     setLoading(false);
   };
 
+  const handleSubscribeClick = async (e) => {
+    e.preventDefault();
+    const ok = await useUserRedirect(navigate, "/subscriptions");
+    if (ok) navigate("/destaques");
+  };
+
   return (
     <>
       <Header />
@@ -72,7 +88,8 @@ function Subscriptions() {
           {/* Botão "Subscrever" no canto superior direito */}
           <div className="d-flex justify-content-end mb-3">
             <Link
-              to="/destaques"
+              to="#"
+              onClick={handleSubscribeClick}
               className="text-secondary d-inline-flex align-items-center gap-1 text-decoration-none"
             >
               <span className="fw-medium">+ Subscrever</span>
@@ -82,8 +99,8 @@ function Subscriptions() {
           {/* Conteúdo */}
           {loading ? (
             <p className="text-center">A carregar cursos...</p>
-          ) : cursos.length === 0 ? (
-            <p className="text-center text-muted">Ainda não possui cursos subscritos.</p>
+          ) : !isAuthenticated || cursos.length === 0 ? (
+            <p className="text-center text-muted">Não existem cursos subscritos.</p>
           ) : (
             <div className="row">
               {cursos.map((curso) => (

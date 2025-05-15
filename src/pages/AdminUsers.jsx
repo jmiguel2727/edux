@@ -261,10 +261,7 @@ function AdminUsers() {
                   }
                 />
               </div>
-              <button
-                className="btn btn-success me-2"
-                onClick={handleUpdate}
-              >
+              <button className="btn btn-success me-2" onClick={handleUpdate}>
                 Guardar alterações
               </button>
               <button

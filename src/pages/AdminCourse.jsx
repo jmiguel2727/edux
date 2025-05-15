@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
 import supabase from "../helper/supabaseClient";
 
 function AdminCourse() {
   const [courses, setCourses] = useState([]);
   const [message, setMessage] = useState("");
-  // Filtro de status começa em 'pendente'
   const [statusFilter, setStatusFilter] = useState("pendente");
+  const navigate = useNavigate();
 
-  // Carrega os cursos (aqui busca todos e filtra no front, mas podes filtrar no back)
   const fetchCourses = async () => {
     try {
       const { data, error } = await supabase
@@ -33,30 +33,6 @@ function AdminCourse() {
     fetchCourses();
   }, []);
 
-  // Atualiza status do curso para 'aprovado' ou 'rejeitado'
-  const handleUpdateStatus = async (id, newStatus) => {
-    try {
-      const { error } = await supabase
-        .from("courses")
-        .update({ status: newStatus })
-        .eq("id", id);
-
-      if (error) {
-        console.error(error);
-        setMessage("Erro ao atualizar o status do curso.");
-      } else {
-        const courseTitle = courses.find((c) => c.id === id)?.title || id;
-        setMessage(` O curso '${courseTitle}' foi ${newStatus}.`);
-        // Recarrega lista
-        fetchCourses();
-      }
-    } catch (err) {
-      console.error(err);
-      setMessage("Erro inesperado ao atualizar o curso.");
-    }
-  };
-
-  // Filtra cursos no front com base no statusFilter
   const filteredCourses = courses.filter(
     (course) => course.status === statusFilter
   );
@@ -64,10 +40,8 @@ function AdminCourse() {
   return (
     <AdminSidebar>
       <div className="container p-4">
-        {/* Cabeçalho */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h2 className="fw-bold mb-0">Gestão de Cursos</h2>
-          {/* Filtro de status no canto direito */}
           <div style={{ minWidth: "180px" }}>
             <select
               className="form-select"
@@ -81,10 +55,8 @@ function AdminCourse() {
           </div>
         </div>
 
-        {/* Mensagem de info/erro */}
         {message && <div className="alert alert-info">{message}</div>}
 
-        {/* Lista de cursos filtrados */}
         {filteredCourses.length === 0 ? (
           <p className="text-muted">
             Não há cursos {statusFilter} disponíveis no momento.
@@ -99,11 +71,20 @@ function AdminCourse() {
                       src={course.thumbnail_url}
                       alt={course.title}
                       className="card-img-top"
-                      style={{ height: "200px", objectFit: "cover" }}
+                      style={{ height: "200px", objectFit: "cover", cursor: "pointer" }}
+                      onClick={() => navigate(`/admin/course-edit/${course.id}`)}
                     />
                   )}
                   <div className="card-body">
-                    <h5 className="card-title">{course.title}</h5>
+                    <h5
+                      className="card-title"
+                      style={{ cursor: "pointer", transition: "0.2s" }}
+                      onClick={() => navigate(`/admin/course-edit/${course.id}`)}
+                      onMouseOver={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                      onMouseOut={(e) => (e.currentTarget.style.textDecoration = "none")}
+                    >
+                      {course.title}
+                    </h5>
                     <p className="card-text mb-1">
                       <strong>Data:</strong>{" "}
                       {new Date(course.created_at).toLocaleDateString("pt-PT")}
@@ -111,28 +92,6 @@ function AdminCourse() {
                     <p className="card-text mb-1">
                       <strong>Status:</strong> {course.status}
                     </p>
-
-                    {/* Botões para aprovar/rejeitar apenas se estiver pendente */}
-                    {course.status === "pendente" && (
-                      <div className="mt-3 d-flex gap-2">
-                        <button
-                          className="btn btn-success"
-                          onClick={() => handleUpdateStatus(course.id, "aprovado")}
-                        >
-                          Aprovar
-                        </button>
-                        <button
-                          className="btn btn-danger"
-                          onClick={() => handleUpdateStatus(course.id, "rejeitado")}
-                        >
-                          Rejeitar
-                        </button>
-                      </div>
-                    )}
-                    {/* Botão 'Ver detalhes' ou qualquer outra ação */}
-                    <button className="btn btn-primary mt-3">
-                      Ver 
-                    </button>
                   </div>
                 </div>
               </div>
@@ -145,3 +104,4 @@ function AdminCourse() {
 }
 
 export default AdminCourse;
+  

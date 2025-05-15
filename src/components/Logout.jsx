@@ -8,7 +8,7 @@ function Logout() {
   useEffect(() => {
     const logout = async () => {
       await supabase.auth.signOut();
-      navigate("/"); // ou "/" se preferires
+      navigate("/");
     };
 
     logout();
