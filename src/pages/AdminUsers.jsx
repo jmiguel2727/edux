@@ -2,6 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
 import AdminSidebar from "../components/AdminSidebar";
+import { FiTrash } from "react-icons/fi";
+import { FaPencil } from "react-icons/fa6";
+import { TbArrowsUpDown } from "react-icons/tb";
 
 function AdminUsers() {
   const [session, setSession] = useState(null);
@@ -136,7 +139,6 @@ function AdminUsers() {
 
   return (
     <AdminSidebar>
-      <h2 className="mb-4">Gestão de Utilizadores</h2>
 
       {loading ? (
         <p className="text-center">A carregar utilizadores...</p>
@@ -148,9 +150,8 @@ function AdminUsers() {
             </div>
           )}
 
-          <div className="d-flex justify-content-end mb-3 gap-3">
+          <div className="d-flex justify-content-end align-items-end mb-3 gap-2">
             <div>
-              <label className="form-label me-2">Ordenar por:</label>
               <select
                 className="form-select"
                 value={sortField}
@@ -162,17 +163,13 @@ function AdminUsers() {
                 <option value="last_sign_in_at">Último login</option>
               </select>
             </div>
-            <div>
-              <label className="form-label me-2">Ordem:</label>
-              <select
-                className="form-select"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-              >
-                <option value="asc">Ascendente</option>
-                <option value="desc">Descendente</option>
-              </select>
-            </div>
+            <button
+              className="btn"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              title={`Ordem: ${sortOrder === "asc" ? "Ascendente" : "Descendente"}`}
+            >
+              <TbArrowsUpDown size={20} />
+            </button>
           </div>
 
           <div className="table-responsive mb-4">
@@ -198,11 +195,11 @@ function AdminUsers() {
                     <td>{user.created_at ? new Date(user.created_at).toLocaleString() : "-"}</td>
                     <td>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "-"}</td>
                     <td>
-                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(user)}>
-                        Editar
+                      <button className="btn btn-sm btn-outline-warning me-2" title="Editar" onClick={() => handleEdit(user)}>
+                        <FaPencil />
                       </button>
-                      <button className="btn btn-sm btn-danger" onClick={() => setUserParaRemover(user)}>
-                        Remover
+                      <button className="btn btn-sm btn-outline-danger" title="Remover" onClick={() => setUserParaRemover(user)}>
+                        <FiTrash />
                       </button>
                     </td>
                   </tr>
@@ -259,7 +256,7 @@ function AdminUsers() {
                 />
               </div>
               <button className="btn btn-success me-2" onClick={handleUpdate}>
-                Guardar alterações
+                Guardar
               </button>
               <button className="btn btn-secondary" onClick={() => setEditUser(null)}>
                 Cancelar
