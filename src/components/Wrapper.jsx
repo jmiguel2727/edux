@@ -41,7 +41,7 @@ export default function Wrapper({ children }) {
 
   const path = location.pathname;
 
-  // Rotas públicas (corrigidas com "/")
+  // Rotas públicas 
   const publicRoutes = [
     "/",
     "/home",
@@ -62,6 +62,7 @@ export default function Wrapper({ children }) {
     "/admin/users",
     "/admin/course",
     "/admin/course-edit",
+    "/admin/course-content",
     "/logout"
   ];
   const isAdminRoute = adminRoutes.some((route) => path === route || path.startsWith(route + "/"));

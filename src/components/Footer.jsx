@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaYoutube } from "react-icons/fa";
 import { MdEmail, MdPhone } from "react-icons/md";
 
 export default function Footer() {
@@ -9,8 +9,8 @@ export default function Footer() {
       <div className="container">
 
         <div className="mb-3 d-flex justify-content-center gap-4 flex-wrap">
-          <Link to="/sobre" className="text-white text-decoration-none">Sobre</Link>
-          <Link to="/termos" className="text-white text-decoration-none">Termos e Condições</Link>
+          <Link to="/about" className="text-white text-decoration-none">Sobre</Link>
+          <Link to="/terms" className="text-white text-decoration-none">Termos e Condições</Link>
         </div>
 
         <div className="mb-3">
@@ -28,7 +28,6 @@ export default function Footer() {
         <div className="mb-3">
           <a href="https://facebook.com" target="_blank" rel="noreferrer" className="text-white me-3"><FaFacebook size={24} /></a>
           <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-white me-3"><FaInstagram size={24} /></a>
-          <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="text-white me-3"><FaLinkedin size={24} /></a>
           <a href="https://youtube.com" target="_blank" rel="noreferrer" className="text-white"><FaYoutube size={24} /></a>
         </div>
 

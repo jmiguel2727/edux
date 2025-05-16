@@ -11,8 +11,12 @@ function AdminUsers() {
   const [editUser, setEditUser] = useState(null);
   const [sortField, setSortField] = useState("created_at");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [mensagem, setMensagem] = useState("");
+  const [userParaRemover, setUserParaRemover] = useState(null);
+
   const navigate = useNavigate();
   const formSectionRef = useRef(null);
+  const tabelaRef = useRef(null);
 
   useEffect(() => {
     document.title = "Utilizadores | EDUX";
@@ -80,23 +84,23 @@ function AdminUsers() {
     setLoading(false);
   };
 
-  const handleDelete = async (userId) => {
-    if (!userId) return;
-
-    const confirmed = window.confirm("Tens a certeza que queres remover este utilizador?");
-    if (!confirmed) return;
+  const handleDelete = async () => {
+    if (!userParaRemover?.id) return;
 
     const { error } = await supabase.rpc("desativar_utilizador", {
-      user_id: userId,
+      user_id: userParaRemover.id,
     });
 
     if (error) {
       console.error("Erro ao desativar:", error.message);
-      alert("Erro ao desativar utilizador.");
     } else {
-      alert("Utilizador desativado com sucesso.");
+      setMensagem("Utilizador removido com sucesso.");
+      tabelaRef.current?.scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => setMensagem(""), 2000);
       fetchUsers();
     }
+
+    setUserParaRemover(null);
   };
 
   const handleEdit = (user) => {
@@ -118,10 +122,11 @@ function AdminUsers() {
     });
 
     if (error) {
-      alert("Erro ao atualizar utilizador.");
-      console.error(error.message);
+      console.error("Erro ao atualizar:", error.message);
     } else {
-      alert("Utilizador atualizado com sucesso.");
+      setMensagem("Alterações guardadas com sucesso.");
+      tabelaRef.current?.scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => setMensagem(""), 2000);
       setEditUser(null);
       fetchUsers();
     }
@@ -137,6 +142,12 @@ function AdminUsers() {
         <p className="text-center">A carregar utilizadores...</p>
       ) : (
         <>
+          {mensagem && (
+            <div ref={tabelaRef} className="alert alert-success text-center fw-semibold">
+              {mensagem}
+            </div>
+          )}
+
           <div className="d-flex justify-content-end mb-3 gap-3">
             <div>
               <label className="form-label me-2">Ordenar por:</label>
@@ -184,27 +195,13 @@ function AdminUsers() {
                     <td>{`${user.first_name || ""} ${user.last_name || ""}`.trim() || "-"}</td>
                     <td>{user.phone || "-"}</td>
                     <td>{user.birth_date || "-"}</td>
+                    <td>{user.created_at ? new Date(user.created_at).toLocaleString() : "-"}</td>
+                    <td>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "-"}</td>
                     <td>
-                      {user.created_at
-                        ? new Date(user.created_at).toLocaleString()
-                        : "-"}
-                    </td>
-                    <td>
-                      {user.last_sign_in_at
-                        ? new Date(user.last_sign_in_at).toLocaleString()
-                        : "-"}
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-warning me-2"
-                        onClick={() => handleEdit(user)}
-                      >
+                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(user)}>
                         Editar
                       </button>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleDelete(user.id)}
-                      >
+                      <button className="btn btn-sm btn-danger" onClick={() => setUserParaRemover(user)}>
                         Remover
                       </button>
                     </td>
@@ -264,12 +261,30 @@ function AdminUsers() {
               <button className="btn btn-success me-2" onClick={handleUpdate}>
                 Guardar alterações
               </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setEditUser(null)}
-              >
+              <button className="btn btn-secondary" onClick={() => setEditUser(null)}>
                 Cancelar
               </button>
+            </div>
+          )}
+
+          {/* Modal de confirmação de remoção */}
+          {userParaRemover && (
+            <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Confirmar remoção</h5>
+                    <button type="button" className="btn-close" onClick={() => setUserParaRemover(null)}></button>
+                  </div>
+                  <div className="modal-body">
+                    <p>Queres mesmo remover o utilizador <strong>{userParaRemover.email}</strong>?</p>
+                  </div>
+                  <div className="modal-footer">
+                    <button className="btn btn-danger" onClick={handleDelete}>Sim, remover</button>
+                    <button className="btn btn-secondary" onClick={() => setUserParaRemover(null)}>Cancelar</button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </>

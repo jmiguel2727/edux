@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-function Termos() {
+function Terms() {
   useEffect(() => {
     document.title = "Termos e Condições | EDUX";
   }, []);
@@ -112,5 +112,5 @@ function Termos() {
   );
 }
 
-export default Termos;
+export default Terms;
 

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-function Sobre() {
+function About() {
   useEffect(() => {
     document.title = "Sobre | EDUX";
   }, []);
@@ -54,4 +54,4 @@ function Sobre() {
   );
 }
 
-export default Sobre;
+export default About;

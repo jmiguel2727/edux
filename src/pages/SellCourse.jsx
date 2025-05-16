@@ -54,19 +54,17 @@ function SellCourse() {
     <>
       <Header />
 
-      <div
-        className="container d-flex justify-content-center align-items-center"
-        style={{ minHeight: "70vh", marginTop: "80px", marginBottom: "80px" }}
-      >
+      <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "70vh" }}>
         <div
           className="bg-light border rounded"
-          style={{
-            backgroundColor: "#f8f2f2",
-            width: "90%",
-            minHeight: "250px",
-            padding: "30px",
-            position: "relative",
-          }}
+            style={{
+              backgroundColor: "#f8f2f2",
+              width: "90%",
+              padding: "30px",
+              position: "relative",
+              marginTop: "30px",
+              marginBottom: "30px"
+            }}
         >
           {/* Botão "Criar curso" */}
           <div className="d-flex justify-content-end mb-3">

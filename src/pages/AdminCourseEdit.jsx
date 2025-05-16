@@ -60,6 +60,17 @@ function AdminCourseEdit() {
   return (
     <AdminSidebar>
       <div className="container py-4">
+
+        {/* Botão para ver conteúdo */}
+        <div className="d-flex justify-content-end mb-3">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => navigate(`/admin/course-content/${id}`)}
+          >
+            Ver conteúdo do curso
+          </button>
+        </div>
+
         <h2 className="mb-4">Editar Curso</h2>
 
         {message && <div className="alert alert-info">{message}</div>}

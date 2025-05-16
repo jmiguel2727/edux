@@ -11,12 +11,14 @@ import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
 import Subscriptions from "./pages/Subscriptions";
 import AdminCourse from "./pages/AdminCourse";
+import AdminReports from "./pages/AdminReports";
 import CreateCourse from "./pages/CreateCourse";
 import SellCourse from "./pages/SellCourse";
 import CoursePreview from "./pages/CoursePreview";
 import CourseContent from "./pages/CourseContent"; 
 import AdminCourseEdit from "./pages/AdminCourseEdit";
 import CategoriaCursos from "./pages/CategoriaCursos";
+import AdminCourseContent from "./pages/AdminCourseContent";
 import Wrapper from "./components/Wrapper";
 import Logout from "./components/Logout";
 
@@ -30,6 +32,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/terms" element={<Terms />} />
 
         {/* Páginas exclusivas de user */}
         <Route path="/destaques" element={<Wrapper><Destaques /></Wrapper>} />
@@ -43,13 +47,13 @@ function App() {
         <Route path="/curso/:id/conteudo" element={<Wrapper><CourseContent /></Wrapper>} />
         <Route path="/categoria/:nome" element={<Wrapper><CategoriaCursos /></Wrapper>} />
 
-
         {/* Páginas exclusivas de administração */}
         <Route path="/admin" element={<Wrapper><Admin /></Wrapper>} />
         <Route path="/admin/users" element={<Wrapper><AdminUsers /></Wrapper>} />
         <Route path="/admin/course" element={<Wrapper><AdminCourse /></Wrapper>} />
+        <Route path="/admin/reports" element={<Wrapper><AdminReports /></Wrapper>} />
         <Route path="/admin/course-edit/:id" element={<Wrapper><AdminCourseEdit /></Wrapper>} />
-
+        <Route path="/admin/course-content/:id" element={<Wrapper><AdminCourseContent /></Wrapper>} />
 
       </Routes>
     </BrowserRouter>

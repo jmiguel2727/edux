@@ -4,6 +4,8 @@ import supabase from "../helper/supabaseClient";
 import logo from "../assets/logo_edux_dark.png";
 
 function Register() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -43,10 +45,8 @@ function Register() {
       {
         id: user.id,
         email: user.email,
-        first_name: "",
-        last_name: "",
-        phone: "",
-        birth_date: null,
+        first_name: firstName,
+        last_name: lastName
       },
     ]);
 
@@ -58,7 +58,7 @@ function Register() {
     }
 
     setTimeout(() => {
-      navigate(from); // Redireciona após criação de conta
+      navigate(from);
     }, 1000);
   };
 
@@ -80,21 +80,54 @@ function Register() {
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
+              <label className="text-dark">Primeiro Nome</label>
+              <input
+                type="text"
+                className="form-control"
+                required
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="text-dark">Último Nome</label>
+              <input
+                type="text"
+                className="form-control"
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
               <label className="text-dark">Email</label>
-              <input type="email" className="form-control" required
-                value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input
+                type="email"
+                className="form-control"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <div className="mb-4">
               <label className="text-dark">Password</label>
-              <input type="password" className="form-control" required
-                value={password} onChange={(e) => setPassword(e.target.value)} />
+              <input
+                type="password"
+                className="form-control"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             <button type="submit" className="btn btn-dark w-100 shadow-sm">Criar Conta</button>
           </form>
         )}
 
         <p className="text-center mt-3 text-secondary">
-          Já tens conta? <Link to="/login" state={{ from }} className="text-dark">Iniciar sessão</Link>
+          Já tens conta?{" "}
+          <Link to="/login" state={{ from }} className="text-dark">
+            Iniciar sessão
+          </Link>
         </p>
       </div>
     </div>

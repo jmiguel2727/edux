@@ -7,40 +7,47 @@ function Admin() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
   const [pendingCourses, setPendingCourses] = useState(0);
+  const [pendingReports, setPendingReports] = useState(0); // NOVO
 
   useEffect(() => {
     document.title = "Admin | EDUX";
 
     const fetchData = async () => {
-      // Obter a sessão do utilizador atual
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (session) {
-        setEmail(session.user.email);
-      }
+      if (session) setEmail(session.user.email);
 
-      // Chamada à function contar_utilizadores
       const { data: total, error: totalError } = await supabase.rpc("contar_utilizadores");
-      // Chamada à function contar_utilizadores_ativos
       const { data: active, error: activeError } = await supabase.rpc("contar_utilizadores_ativos");
 
       if (!totalError && total !== null) setTotalUsers(total);
       if (!activeError && active !== null) setActiveUsers(active);
 
-      // Buscar número de cursos pendentes (status = 'pendente')
-      // Usamos { count: 'exact', head: true } para só contar, sem trazer linhas
       const {
-        count,
+        count: courseCount,
         error: pendingError,
       } = await supabase
         .from("courses")
         .select("*", { count: "exact", head: true })
         .eq("status", "pendente");
 
-      if (!pendingError && typeof count === "number") {
-        setPendingCourses(count);
+      if (!pendingError && typeof courseCount === "number") {
+        setPendingCourses(courseCount);
+      }
+
+      // buscar número de reports (denúncias)
+      const {
+        count: reportCount,
+        error: reportError,
+      } = await supabase
+        .from("reports")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pendente");
+
+      if (!reportError && typeof reportCount === "number") {
+        setPendingReports(reportCount);
       }
     };
 
@@ -53,7 +60,7 @@ function Admin() {
       <p className="text-muted">Bem-vindo, {email}</p>
 
       <div className="row mt-4">
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="card text-bg-primary mb-3 shadow">
             <div className="card-body">
               <h5 className="card-title">Total de Utilizadores</h5>
@@ -62,7 +69,7 @@ function Admin() {
           </div>
         </div>
 
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="card text-bg-success mb-3 shadow">
             <div className="card-body">
               <h5 className="card-title">Utilizadores Ativos</h5>
@@ -71,12 +78,20 @@ function Admin() {
           </div>
         </div>
 
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="card text-bg-warning mb-3 shadow">
             <div className="card-body">
               <h5 className="card-title">Cursos por Aprovar</h5>
-              {/* Mostrar o número de cursos pendentes em vez de valor estático */}
               <p className="card-text fs-4">{pendingCourses}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-3">
+          <div className="card text-bg-danger mb-3 shadow">
+            <div className="card-body">
+              <h5 className="card-title">Denúncias por Ver</h5>
+              <p className="card-text fs-4">{pendingReports}</p>
             </div>
           </div>
         </div>

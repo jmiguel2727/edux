@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { FaUsers } from "react-icons/fa";
 import { LuBookmarkCheck } from "react-icons/lu";
 import { IoIosLogOut } from "react-icons/io";
+import { MdOutlineReport } from "react-icons/md"; // Novo ícone
 import logo from "/src/assets/logo_edux_white.png";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -31,6 +32,7 @@ export default function AdminSidebar({ children }) {
   const links = [
     { to: "/admin/users", label: "Utilizadores", icon: <FaUsers size={24} /> },
     { to: "/admin/course", label: "Cursos", icon: <LuBookmarkCheck size={24} /> },
+    { to: "/admin/reports", label: "Denúncias", icon: <MdOutlineReport size={24} /> }, // Novo link
     { to: "/logout", label: "Logout", icon: <IoIosLogOut size={24} /> },
   ];
 
