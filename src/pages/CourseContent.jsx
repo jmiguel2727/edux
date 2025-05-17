@@ -79,8 +79,11 @@ function CourseContent() {
                   O teu navegador não suporta vídeo embutido.
                 </video>
               ) : (
-                <p className="text-muted">Nenhum vídeo disponível.</p>
+                <div className="d-flex justify-content-center align-items-center" style={{ height: "300px", backgroundColor: "#f8f9fa", borderRadius: "8px" }}>
+                  <p className="text-muted mb-0">Nenhum vídeo disponível para este item.</p>
+                </div>
               )}
+
             </div>
 
             {/* Lista lateral */}

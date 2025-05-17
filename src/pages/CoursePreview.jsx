@@ -22,11 +22,12 @@ function CoursePreview() {
   const [reportId, setReportId] = useState(null);
 
   useEffect(() => {
-    document.title = "Visualização do Curso | EDUX";
-    fetchCurso();
-    checkUser();
-    checkIfSubscribed();
-    fetchComentarios();
+  window.scrollTo({ top: 0, behavior: "smooth" }); // força scroll para o topo ao entrar
+  document.title = "Visualização do Curso | EDUX";
+  fetchCurso();
+  checkUser();
+  checkIfSubscribed();
+  fetchComentarios();
   }, [id]);
 
   const fetchCurso = async () => {
@@ -163,12 +164,19 @@ function CoursePreview() {
                     </>
                   ) : (
                     <button
-                      className="btn btn-primary"
+                      className="btn text-white"
+                      style={{
+                        backgroundColor: "#7188B2",
+                        border: "none",
+                        transition: "background-color 0.3s",
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#384761")}
+                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#7188B2")}
                       onClick={async () => {
                         const ok = await useUserRedirect(navigate, `/curso/${id}`);
                         if (ok) setShowConfirm(true);
                       }}
-                    >
+                      >
                       <i className="bi bi-box-arrow-in-right me-2"></i> Subscrever curso
                     </button>
                   )}
