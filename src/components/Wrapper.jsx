@@ -39,7 +39,8 @@ export default function Wrapper({ children }) {
 
   if (loading) return <p>Loading...</p>;
 
-  const path = location.pathname;
+  const path = location.pathname.toLowerCase();
+
 
   // Rotas públicas 
   const publicRoutes = [
