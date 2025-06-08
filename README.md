@@ -1,5 +1,1 @@
-# Credentials
-
-admin:
-user ---> psoares@iscac.pt
-pass ---> pass123
+Só o curso " Curso de avaliação para o professor" possui conteúdo disponível
