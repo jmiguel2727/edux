@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -22,12 +22,12 @@ function CoursePreview() {
   const [reportId, setReportId] = useState(null);
 
   useEffect(() => {
-  window.scrollTo({ top: 0, behavior: "smooth" }); // força scroll para o topo ao entrar
-  document.title = "Visualização do Curso | EDUX";
-  fetchCurso();
-  checkUser();
-  checkIfSubscribed();
-  fetchComentarios();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.title = "Visualização do Curso | EDUX";
+    fetchCurso();
+    checkUser();
+    checkIfSubscribed();
+    fetchComentarios();
   }, [id]);
 
   const fetchCurso = async () => {
@@ -66,8 +66,9 @@ function CoursePreview() {
   const fetchComentarios = async () => {
     const { data } = await supabase
       .from("comments")
-      .select("id, user_id, content, created_at, profiles(first_name, last_name)")
+      .select("id, user_id, content, created_at, is_visible, profiles(first_name, last_name)")
       .eq("course_id", id)
+      .eq("is_visible", true)
       .order("created_at", { ascending: false });
     setComments(data || []);
   };
@@ -76,7 +77,7 @@ function CoursePreview() {
     if (!user || !novoComentario.trim()) return;
     const { error } = await supabase
       .from("comments")
-      .insert({ user_id: user.id, course_id: id, content: novoComentario });
+      .insert({ user_id: user.id, course_id: id, content: novoComentario, is_visible: true });
     if (!error) {
       setNovoComentario("");
       fetchComentarios();
@@ -122,6 +123,7 @@ function CoursePreview() {
           <p className="text-center text-danger">Curso não encontrado.</p>
         ) : (
           <>
+            {/* Curso */}
             <div className="row align-items-start g-4 mb-4">
               <div className="col-md-5">
                 {curso.thumbnail_url && (
@@ -138,15 +140,12 @@ function CoursePreview() {
                 <p className="text-dark mb-2">
                   <strong>Criado por:</strong> {criador ? `${criador.first_name} ${criador.last_name}` : "Criador não disponível"}
                 </p>
-
                 <p className="text-dark mb-2">
                   <strong>Categoria:</strong> {curso.categoria || "Não definida"}
                 </p>
-
                 <p className="text-dark mb-3">
                   <strong>Data de lançamento:</strong> {new Date(curso.created_at).toLocaleDateString("pt-PT")}
                 </p>
-
                 <p className="text-dark">
                   <strong>Descrição:</strong> {curso.description}
                 </p>
@@ -176,7 +175,7 @@ function CoursePreview() {
                         const ok = await useUserRedirect(navigate, `/curso/${id}`);
                         if (ok) setShowConfirm(true);
                       }}
-                      >
+                    >
                       <i className="bi bi-box-arrow-in-right me-2"></i> Subscrever curso
                     </button>
                   )}
@@ -184,6 +183,7 @@ function CoursePreview() {
               </div>
             </div>
 
+            {/* Comentários */}
             <hr className="my-5" />
             <h4 className="mb-4">Comentários</h4>
 
@@ -220,7 +220,7 @@ function CoursePreview() {
                     <p className="mb-1">{c.content}</p>
                     <small className="text-muted">{new Date(c.created_at).toLocaleString("pt-PT")}</small>
                   </div>
-                  <div>
+                  <div className="d-flex align-items-start gap-3">
                     <MdOutlineReport
                       size={22}
                       className="text-danger"

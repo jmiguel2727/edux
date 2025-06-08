@@ -41,7 +41,6 @@ export default function Wrapper({ children }) {
 
   const path = location.pathname.toLowerCase();
 
-
   // Rotas públicas 
   const publicRoutes = [
     "/",
@@ -53,7 +52,7 @@ export default function Wrapper({ children }) {
     "/coursepreview",
     "/profile",
     "/subscriptions",
-    "/sellcourse"
+    "/sellcourse",
   ];
   const isPublic = publicRoutes.some((route) => path.startsWith(route));
 
