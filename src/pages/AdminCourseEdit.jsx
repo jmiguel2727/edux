@@ -8,6 +8,8 @@ function AdminCourseEdit() {
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [message, setMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalImage, setModalImage] = useState("");
 
   const categorias = [
     "Tecnologia", "Design", "Negócios", "Marketing", "Desenvolvimento Pessoal",
@@ -57,21 +59,26 @@ function AdminCourseEdit() {
     setCourse((prev) => ({ ...prev, [field]: value }));
   };
 
+  const openModal = (imageUrl) => {
+    setModalImage(imageUrl);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setModalImage("");
+  };
+
   return (
     <AdminSidebar>
       <div className="container py-4">
 
-        {/* Botão para ver conteúdo */}
-        <div className="d-flex justify-content-end mb-3">
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => navigate(`/admin/course-content/${id}`)}
-          >
-            Ver conteúdo do curso
+        {/* Botão voltar */}
+        <div className="mb-3">
+          <button className="btn btn-outline-primary" onClick={() => navigate("/admin/course")}>
+            ← Voltar à lista de cursos
           </button>
         </div>
-
-        <h2 className="mb-4">Editar Curso</h2>
 
         {message && <div className="alert alert-info">{message}</div>}
 
@@ -79,14 +86,30 @@ function AdminCourseEdit() {
           <p>A carregar...</p>
         ) : (
           <div className="card shadow-sm p-4">
+            {/* Thumbnail + botão ver conteúdo */}
             {course.thumbnail_url && (
-              <img
-                src={course.thumbnail_url}
-                alt="Thumbnail"
-                className="img-fluid rounded mb-3"
-                style={{ maxHeight: "250px", objectFit: "cover" }}
-              />
+              <>
+                <img
+                  src={course.thumbnail_url}
+                  alt="Thumbnail"
+                  className="img-fluid rounded mb-3"
+                  style={{ maxHeight: "250px", objectFit: "cover", cursor: "pointer" }}
+                  onClick={() => openModal(course.thumbnail_url)}
+                  title="Clique para ampliar"
+                />
+                <div className="d-flex justify-content-end mb-3">
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => navigate(`/admin/course-content/${id}`)}
+                  >
+                    Ver conteúdo do curso
+                  </button>
+                </div>
+              </>
             )}
+
+            {/* Título */}
+            <h2 className="mb-4">Editar Curso</h2>
 
             <div className="mb-3">
               <label className="form-label">Título</label>
@@ -129,6 +152,33 @@ function AdminCourseEdit() {
               <button className="btn btn-danger" onClick={() => handleUpdate("rejeitado")}>
                 Rejeitar Curso
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para imagem */}
+        {showModal && (
+          <div
+            className="modal fade show"
+            style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.8)" }}
+            tabIndex="-1"
+            onClick={closeModal}
+          >
+            <div className="modal-dialog modal-dialog-centered modal-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content bg-dark text-white">
+                <div className="modal-header border-0">
+                  <h5 className="modal-title">Thumbnail do Curso</h5>
+                  <button type="button" className="btn-close btn-close-white" onClick={closeModal}></button>
+                </div>
+                <div className="modal-body text-center">
+                  <img
+                    src={modalImage}
+                    alt="Thumbnail"
+                    className="img-fluid rounded"
+                    style={{ maxHeight: "80vh", width: "100%", objectFit: "contain" }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}

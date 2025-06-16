@@ -64,7 +64,7 @@ function CreateCourse() {
 
       setTimeout(() => {
         setMessage("");
-      }, 2500);
+      }, 3500);
     }
   }, [message]);
 
@@ -137,8 +137,15 @@ function CreateCourse() {
 
   const handleFinalizar = async () => {
     if (!title || !description || !thumbnailFile || sections.length === 0) {
-      setMessage("Preenche todos os campos, adiciona thumbnail e pelo menos uma secção.");
+      setMessage("Erro! Preenche todos os campos e adiciona alguma secção.");
       return;
+    }
+
+    for (const section of sections) {
+      if (!section.items || section.items.length === 0) {
+        setMessage("Erro! Cada secção deve conter pelo menos um item.");
+        return;
+      }
     }
 
     const { data: sessionData } = await supabase.auth.getSession();
@@ -149,7 +156,6 @@ function CreateCourse() {
     }
 
     try {
-      // Upload da thumbnail primeiro
       const ext = thumbnailFile.name.split(".").pop();
       const thumbFileName = sanitizeFileName(`${Date.now()}.${ext}`);
       const { error: thumbError } = await supabase
@@ -164,11 +170,13 @@ function CreateCourse() {
         .getPublicUrl(thumbFileName);
       const thumbnailUrl = thumbUrlData.publicUrl;
 
-      // Fazer upload dos vídeos e ficheiros primeiro
       const uploads = [];
       for (const section of sections) {
         for (const item of section.items) {
-          if (!item.video) throw new Error("Item sem vídeo detectado.");
+          if (!item.video) {
+            setMessage("Erro! Cada item precisa de ter um vídeo associado.");
+            return;
+          }
 
           const videoName = sanitizeFileName(`${Date.now()}_${item.video.name}`);
           uploads.push(
@@ -192,7 +200,6 @@ function CreateCourse() {
 
       await Promise.all(uploads);
 
-      // Inserir curso apenas após uploads com sucesso
       const { data: course, error: courseError } = await supabase
         .from("courses")
         .insert({
@@ -206,7 +213,6 @@ function CreateCourse() {
         .single();
       if (courseError || !course) throw courseError;
 
-      // Inserir secções e itens
       for (const section of sections) {
         const { data: sectionData, error: secError } = await supabase
           .from("sections")
@@ -445,3 +451,4 @@ function CreateCourse() {
 }
 
 export default CreateCourse;
+
