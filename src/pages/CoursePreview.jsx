@@ -98,17 +98,53 @@ function CoursePreview() {
   const confirmSubscription = async () => {
     const { data: session } = await supabase.auth.getSession();
     const user = session?.session?.user;
-
     if (!user) return;
 
-    const { error } = await supabase
+    // 1️⃣ Insere na subscriptions
+    const { error: subError } = await supabase
       .from("subscriptions")
       .insert({ user_id: user.id, course_id: id });
 
-    if (!error) {
-      setIsSubscribed(true);
-      setShowConfirm(false);
+    if (subError) {
+      alert("Erro ao subscrever o curso.");
+      return;
     }
+
+    // 2️⃣ Calcula total de aulas
+    const { data: sections } = await supabase
+      .from("sections")
+      .select("id")
+      .eq("course_id", id);
+
+    if (!sections || sections.length === 0) {
+      alert("Erro: o curso não contém secções.");
+      return;
+    }
+
+    const { data: items } = await supabase
+      .from("items")
+      .select("id")
+      .in("section_id", sections.map(s => s.id));
+
+    const totalItems = items ? items.length : 0;
+
+    // 3️⃣ Cria na progress
+    const { error: progError } = await supabase
+      .from("progress")
+      .insert({
+        user_id: user.id,
+        course_id: id,
+        total_items: totalItems
+      });
+
+    if (progError) {
+      alert("Erro ao criar o progresso do curso.");
+      return;
+    }
+
+    // 4️⃣ Atualiza estado (sem alert extra)
+    setIsSubscribed(true);
+    setShowConfirm(false);
   };
 
   const comentariosVisiveis = verMais ? comments : comments.slice(0, 4);
@@ -123,7 +159,6 @@ function CoursePreview() {
           <p className="text-center text-danger">Curso não encontrado.</p>
         ) : (
           <>
-            {/* Curso */}
             <div className="row align-items-start g-4 mb-4">
               <div className="col-md-5">
                 {curso.thumbnail_url && (
@@ -150,7 +185,6 @@ function CoursePreview() {
                   <strong>Descrição:</strong> {curso.description}
                 </p>
 
-                {/* Botões de subscrição */}
                 <div className="d-flex flex-wrap gap-3 mt-3">
                   {isSubscribed ? (
                     <>
@@ -164,11 +198,7 @@ function CoursePreview() {
                   ) : (
                     <button
                       className="btn text-white"
-                      style={{
-                        backgroundColor: "#7188B2",
-                        border: "none",
-                        transition: "background-color 0.3s",
-                      }}
+                      style={{ backgroundColor: "#7188B2", border: "none" }}
                       onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#384761")}
                       onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#7188B2")}
                       onClick={async () => {
@@ -183,7 +213,6 @@ function CoursePreview() {
               </div>
             </div>
 
-            {/* Comentários */}
             <hr className="my-5" />
             <h4 className="mb-4">Comentários</h4>
 
@@ -242,7 +271,6 @@ function CoursePreview() {
         )}
       </div>
 
-      {/* Modal de confirmação de subscrição */}
       {showConfirm && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
           <div className="bg-white p-4 rounded shadow text-center" style={{ maxWidth: "400px" }}>
@@ -256,7 +284,6 @@ function CoursePreview() {
         </div>
       )}
 
-      {/* Modal de confirmação de denúncia */}
       {reportId && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}>
           <div className="bg-white p-4 rounded shadow text-center" style={{ maxWidth: "400px" }}>

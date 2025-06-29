@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import supabase from "../helper/supabaseClient";
 import { GoPaste } from "react-icons/go";
 import { FaRegCirclePlay } from "react-icons/fa6";
+import { Button, Modal, ProgressBar } from "react-bootstrap";
 
 function CourseContent() {
   const { id } = useParams();
@@ -12,6 +13,13 @@ function CourseContent() {
   const [currentItem, setCurrentItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openSectionId, setOpenSectionId] = useState(null);
+  const [completedItems, setCompletedItems] = useState([]);
+  const [completedLoaded, setCompletedLoaded] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalItem, setModalItem] = useState(null);
+  const [modalAction, setModalAction] = useState(null);
+  const [progressId, setProgressId] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     document.title = "Conteúdo do Curso | EDUX";
@@ -21,16 +29,16 @@ function CourseContent() {
   const fetchConteudo = async () => {
     setLoading(true);
 
-    const { data: secData, error: secError } = await supabase
+    const { data: secData } = await supabase
       .from("sections")
       .select("id, title")
       .eq("course_id", id);
 
-    const { data: itemsData, error: itemsError } = await supabase
+    const { data: itemsData } = await supabase
       .from("items")
       .select("id, section_id, title, video_path, file_path");
 
-    if (secError || itemsError || !secData || !itemsData) {
+    if (!secData || !itemsData) {
       setSections([]);
       setLoading(false);
       return;
@@ -45,6 +53,38 @@ function CourseContent() {
     setOpenSectionId(mappedSections[0]?.id || null);
     setCurrentItem(mappedSections[0]?.items[0] || null);
     setLoading(false);
+
+    fetchProgresso();
+  };
+
+  const fetchProgresso = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+    if (!userId) return;
+
+    const { data: prog } = await supabase
+      .from("progress")
+      .select("id, total_items")
+      .eq("course_id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!prog) {
+      alert("Este curso não foi subscrito corretamente. Por favor subscreva antes de aceder ao conteúdo.");
+      return;
+    }
+
+    setProgressId(prog.id);
+    setTotalItems(prog.total_items);
+
+    const { data: items } = await supabase
+      .from("progress_items")
+      .select("item_id")
+      .eq("progress_id", prog.id)
+      .eq("completed", true);
+
+    setCompletedItems(items?.map(i => i.item_id) || []);
+    setCompletedLoaded(true);
   };
 
   const toggleSection = (sectionId) => {
@@ -55,17 +95,93 @@ function CourseContent() {
     setCurrentItem(item);
   };
 
+  const openCheckModal = (itemId, action) => {
+    setModalItem(itemId);
+    setModalAction(action);
+    setShowModal(true);
+  };
+
+  const handleConfirmModal = async () => {
+    if (!progressId || !modalItem) {
+      setShowModal(false);
+      return;
+    }
+
+    const completed = modalAction === "check";
+
+    const { data: existing } = await supabase
+      .from("progress_items")
+      .select("*")
+      .eq("progress_id", progressId)
+      .eq("item_id", modalItem)
+      .maybeSingle();
+
+    if (existing) {
+      if (completed) {
+        await supabase
+          .from("progress_items")
+          .update({
+            completed: true,
+            completed_at: new Date()
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase
+          .from("progress_items")
+          .delete()
+          .eq("id", existing.id);
+      }
+    } else if (completed) {
+      await supabase
+        .from("progress_items")
+        .insert({
+          progress_id: progressId,
+          item_id: modalItem,
+          completed: true,
+          completed_at: new Date()
+        });
+    }
+
+    const { count } = await supabase
+      .from("progress_items")
+      .select("id", { count: "exact", head: true })
+      .eq("progress_id", progressId)
+      .eq("completed", true);
+
+    await supabase
+      .from("progress")
+      .update({ completed_items: count })
+      .eq("id", progressId);
+
+    setCompletedItems(prev => {
+      if (completed) {
+        return [...prev, modalItem];
+      } else {
+        return prev.filter(id => id !== modalItem);
+      }
+    });
+
+    setShowModal(false);
+  };
+
+  const percent = totalItems > 0 ? Math.round((completedItems.length / totalItems) * 100) : 0;
+
   return (
     <>
       <Header />
       <div className="container py-5" style={{ minHeight: "70vh" }}>
         <h2 className="mb-4">Conteúdo do Curso</h2>
 
+        <ProgressBar
+          now={percent}
+          label={`${percent}% concluído`}
+          className="mb-4"
+        />
+
         {loading ? (
           <p>A carregar conteúdo...</p>
         ) : (
           <div className="d-flex bg-white shadow rounded" style={{ overflow: "hidden" }}>
-            {/* Coluna do vídeo */}
             <div className="p-4" style={{ flex: "0 0 70%", borderRight: "1px solid #dee2e6" }}>
               <h5 className="mb-3">{currentItem?.title}</h5>
               {currentItem?.video_path ? (
@@ -83,10 +199,8 @@ function CourseContent() {
                   <p className="text-muted mb-0">Nenhum vídeo disponível para este item.</p>
                 </div>
               )}
-
             </div>
 
-            {/* Lista lateral */}
             <div className="p-3" style={{ flex: "0 0 30%", background: "#f9f9f9" }}>
               <h6 className="mb-3">Secções</h6>
               <div className="accordion" id="courseAccordion">
@@ -103,28 +217,42 @@ function CourseContent() {
                     </h2>
                     <div className={`accordion-collapse collapse ${openSectionId === sec.id ? "show" : ""}`}>
                       <div className="accordion-body p-2">
-                        <ul className="list-group list-group-flush">
-                          {sec.items.map((item) => (
-                            <li
-                              key={item.id}
-                              className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3 ${currentItem?.id === item.id ? "active" : ""}`}
-                              style={{ cursor: "pointer" }}
-                              onClick={() => handleItemClick(item)}
-                            >
-                              <span><FaRegCirclePlay size={12}/> {item.title}</span>
-                              {item.file_path && (
-                                <a
-                                  href={item.file_path}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-muted small text-decoration-none"
-                                >
-                                  <GoPaste size={14}/>  anexo
-                                </a>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
+                        {completedLoaded ? (
+                          <ul className="list-group list-group-flush">
+                            {sec.items.map((item) => (
+                              <li
+                                key={item.id}
+                                className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3 ${currentItem?.id === item.id ? "active" : ""}`}
+                              >
+                                <span onClick={() => handleItemClick(item)} style={{ cursor: "pointer" }}>
+                                  <FaRegCirclePlay size={12}/> {item.title}
+                                </span>
+                                <div>
+                                  {completedItems.includes(item.id) && <span className="text-success me-2">✔️</span>}
+                                  <Button
+                                    size="sm"
+                                    variant={completedItems.includes(item.id) ? "outline-danger" : "outline-success"}
+                                    onClick={() => openCheckModal(item.id, completedItems.includes(item.id) ? "uncheck" : "check")}
+                                  >
+                                    {completedItems.includes(item.id) ? "Remover" : "Concluir"}
+                                  </Button>
+                                  {item.file_path && (
+                                    <a
+                                      href={item.file_path}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-muted small text-decoration-none ms-2"
+                                    >
+                                      <GoPaste size={14}/> anexo
+                                    </a>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-muted">A carregar progresso...</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -134,6 +262,20 @@ function CourseContent() {
           </div>
         )}
       </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmação</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Tem a certeza que pretende {modalAction === "check" ? "marcar" : "remover"} esta aula como concluída?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
+          <Button variant="primary" onClick={handleConfirmModal}>Confirmar</Button>
+        </Modal.Footer>
+      </Modal>
+
       <Footer />
     </>
   );

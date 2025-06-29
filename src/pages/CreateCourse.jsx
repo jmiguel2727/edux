@@ -21,6 +21,9 @@ function CreateCourse() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [lastLocation, setLastLocation] = useState(location);
+  const [creatingTest, setCreatingTest] = useState(false);
+  const [questions, setQuestions] = useState([]);
+  const [newQuestionText, setNewQuestionText] = useState("");
 
   const cardRef = useRef(null);
 
@@ -148,6 +151,11 @@ function CreateCourse() {
       }
     }
 
+    if (questions.length === 0) {
+      setMessage("Erro! Deves adicionar pelo menos uma pergunta no teste.");
+      return;
+    }
+
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData?.session?.user;
     if (!user) {
@@ -156,50 +164,25 @@ function CreateCourse() {
     }
 
     try {
+      // Upload thumbnail
       const ext = thumbnailFile.name.split(".").pop();
       const thumbFileName = sanitizeFileName(`${Date.now()}.${ext}`);
       const { error: thumbError } = await supabase
         .storage
         .from("course-thumbnails")
         .upload(thumbFileName, thumbnailFile);
-      if (thumbError) throw thumbError;
-
+      if (thumbError) {
+        console.error("Erro no upload da thumbnail:", thumbError);
+        setMessage("Erro no upload da thumbnail.");
+        return;
+      }
       const { data: thumbUrlData } = supabase
         .storage
         .from("course-thumbnails")
         .getPublicUrl(thumbFileName);
       const thumbnailUrl = thumbUrlData.publicUrl;
 
-      const uploads = [];
-      for (const section of sections) {
-        for (const item of section.items) {
-          if (!item.video) {
-            setMessage("Erro! Cada item precisa de ter um vídeo associado.");
-            return;
-          }
-
-          const videoName = sanitizeFileName(`${Date.now()}_${item.video.name}`);
-          uploads.push(
-            supabase.storage.from("curso-conteudos").upload(videoName, item.video).then(({ error }) => {
-              if (error) throw error;
-              item.video_path = supabase.storage.from("curso-conteudos").getPublicUrl(videoName).data.publicUrl;
-            })
-          );
-
-          if (item.file) {
-            const fileName = sanitizeFileName(`${Date.now()}_${item.file.name}`);
-            uploads.push(
-              supabase.storage.from("curso-conteudos").upload(fileName, item.file).then(({ error }) => {
-                if (error) throw error;
-                item.file_path = supabase.storage.from("curso-conteudos").getPublicUrl(fileName).data.publicUrl;
-              })
-            );
-          }
-        }
-      }
-
-      await Promise.all(uploads);
-
+      // Cria o curso
       const { data: course, error: courseError } = await supabase
         .from("courses")
         .insert({
@@ -212,31 +195,106 @@ function CreateCourse() {
         .select()
         .single();
       if (courseError || !course) throw courseError;
+      console.log("Curso criado:", course);
 
+      // Cria secções e items
       for (const section of sections) {
         const { data: sectionData, error: secError } = await supabase
           .from("sections")
           .insert({ course_id: course.id, title: section.title })
           .select()
           .single();
-        if (secError) throw secError;
+        if (secError || !sectionData) throw secError;
+        console.log("Secção criada:", sectionData);
 
         for (const item of section.items) {
-          const { error: insertError } = await supabase.from("items").insert({
+          if (!item.video) {
+            setMessage("Erro! Cada item precisa de ter um vídeo associado.");
+            return;
+          }
+
+          const videoName = sanitizeFileName(`${Date.now()}_${item.video.name}`);
+          const { error: videoUploadError } = await supabase
+            .storage
+            .from("curso-conteudos")
+            .upload(videoName, item.video);
+          if (videoUploadError) {
+            console.error("Erro no upload do vídeo:", videoUploadError);
+            setMessage("Erro no upload do vídeo.");
+            return;
+          }
+          const videoUrl = supabase.storage.from("curso-conteudos").getPublicUrl(videoName).data.publicUrl;
+
+          let fileUrl = null;
+          if (item.file) {
+            const fileName = sanitizeFileName(`${Date.now()}_${item.file.name}`);
+            const { error: fileUploadError } = await supabase
+              .storage
+              .from("curso-conteudos")
+              .upload(fileName, item.file);
+            if (fileUploadError) {
+              console.error("Erro no upload do ficheiro:", fileUploadError);
+              setMessage("Erro no upload do ficheiro.");
+              return;
+            }
+            fileUrl = supabase.storage.from("curso-conteudos").getPublicUrl(fileName).data.publicUrl;
+          }
+
+          const { error: insertItemError } = await supabase.from("items").insert({
             section_id: sectionData.id,
             title: item.title,
-            video_path: item.video_path,
-            file_path: item.file_path || null,
+            video_path: videoUrl,
+            file_path: fileUrl,
           });
-          if (insertError) throw insertError;
+          if (insertItemError) {
+            console.error("Erro ao inserir item:", insertItemError);
+            setMessage("Erro ao inserir item.");
+            return;
+          }
+          console.log("Item criado:", item.title);
+        }
+      }
+
+      // Cria teste
+      const { data: test, error: testError } = await supabase
+        .from("course_tests")
+        .insert({ course_id: course.id })
+        .select()
+        .single();
+      if (testError || !test) throw testError;
+      console.log("Teste criado:", test);
+
+      // Cria perguntas e respostas
+      for (const q of questions) {
+        const { data: qData, error: qError } = await supabase
+          .from("course_questions")
+          .insert({ test_id: test.id, question: q.question })
+          .select()
+          .single();
+        if (qError || !qData) throw qError;
+        console.log("Pergunta criada:", qData);
+
+        for (const a of q.answers) {
+          const { error: aError } = await supabase.from("course_answers").insert({
+            question_id: qData.id,
+            answer: a.answer,
+            is_correct: a.is_correct,
+          });
+          if (aError) {
+            console.error("Erro ao inserir resposta:", aError);
+            setMessage("Erro ao inserir resposta.");
+            return;
+          }
+          console.log("Resposta criada:", a.answer);
         }
       }
 
       localStorage.removeItem("novo_curso");
-      setMessage("Curso submetido com sucesso!");
+      setMessage("Curso e teste submetidos com sucesso!");
       setTimeout(() => navigate("/sell-course"), 2000);
+
     } catch (error) {
-      console.error(error);
+      console.error("Erro no handleFinalizar:", error);
       setMessage("Erro ao submeter curso.");
     }
   };
@@ -399,22 +457,121 @@ function CreateCourse() {
             </div>
           ))}
 
+          {creatingTest && (
+            <div className="mt-4">
+              <h4 className="fw-bold mb-3">Criar Teste Final</h4>
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Texto da nova pergunta"
+                value={newQuestionText}
+                onChange={(e) => setNewQuestionText(e.target.value)}
+              />
+              <button
+                className="btn btn-outline-success mb-3"
+                onClick={() => {
+                  if (!newQuestionText.trim()) return;
+                  setQuestions([
+                    ...questions,
+                    {
+                      question: newQuestionText,
+                      answers: [
+                        { answer: "", is_correct: false },
+                        { answer: "", is_correct: false },
+                        { answer: "", is_correct: false },
+                        { answer: "", is_correct: false },
+                      ],
+                    },
+                  ]);
+                  setNewQuestionText("");
+                  saveToLocalStorage();
+                }}
+              >
+                + Adicionar Pergunta
+              </button>
+
+              {questions.map((q, qIdx) => (
+                <div key={qIdx} className="border rounded p-3 mb-3">
+                  <h6>{q.question}</h6>
+                  {q.answers.map((a, aIdx) => (
+                    <div key={aIdx} className="d-flex align-items-center mb-2">
+                      <input
+                        type="text"
+                        className="form-control me-2"
+                        placeholder={`Opção ${aIdx + 1}`}
+                        value={a.answer}
+                        onChange={(e) => {
+                          const updated = [...questions];
+                          updated[qIdx].answers[aIdx].answer = e.target.value;
+                          setQuestions(updated);
+                          saveToLocalStorage();
+                        }}
+                      />
+                      <input
+                        type="checkbox"
+                        checked={a.is_correct}
+                        onChange={(e) => {
+                          const updated = [...questions];
+                          updated[qIdx].answers = updated[qIdx].answers.map((opt, idx) => ({
+                            ...opt,
+                            is_correct: idx === aIdx ? e.target.checked : false, // só 1 pode ser true
+                          }));
+                          setQuestions(updated);
+                          saveToLocalStorage();
+                        }}
+                      />
+                      <span className="ms-1 small">Correta</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="text-end">
-            <button className="btn btn-dark px-4" onClick={handleFinalizar}>
-              Finalizar
-            </button>
-            <button
-              className="btn btn-outline-danger ms-3"
-              onClick={() => {
-                setShowExitConfirm(true);
-                setPendingNavigation(() => () => {
-                  localStorage.removeItem("novo_curso");
-                  navigate("/sell-course");
-                });
-              }}
-            >
-              Cancelar
-            </button>
+            {!creatingTest ? (
+              <>
+                <button
+                  className="btn btn-primary px-4"
+                  onClick={() => setCreatingTest(true)}
+                >
+                  Seguinte: Criar Teste
+                </button>
+                <button
+                  className="btn btn-outline-danger ms-3"
+                  onClick={() => {
+                    setShowExitConfirm(true);
+                    setPendingNavigation(() => () => {
+                      localStorage.removeItem("novo_curso");
+                      navigate("/sell-course");
+                    });
+                  }}
+                >
+                  Cancelar
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="btn btn-dark px-4"
+                  onClick={handleFinalizar}
+                >
+                  Submeter Curso + Teste
+                </button>
+                <button
+                  className="btn btn-outline-danger ms-3"
+                  onClick={() => {
+                    setShowExitConfirm(true);
+                    setPendingNavigation(() => () => {
+                      localStorage.removeItem("novo_curso");
+                      navigate("/sell-course");
+                    });
+                  }}
+                >
+                  Cancelar
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
