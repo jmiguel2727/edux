@@ -143,9 +143,10 @@ export default function CourseTest() {
           ) : (
             <p className="text-danger">Não passaste. Tenta novamente.</p>
           )}
-          <button className="btn btn-primary" onClick={() => navigate(`/curso/${courseId}`)}>
+            <button className="btn btn-primary" onClick={() => navigate(`/curso/${courseId}/conteudo`)}>
             Voltar ao curso
-          </button>
+            </button>
+
         </div>
         <Footer />
       </>

@@ -21,6 +21,7 @@ function CourseContent() {
   const [modalAction, setModalAction] = useState(null);
   const [progressId, setProgressId] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
+  const [testPassed, setTestPassed] = useState(false);
 
   useEffect(() => {
     document.title = "Conteúdo do Curso | EDUX";
@@ -55,7 +56,8 @@ function CourseContent() {
     setCurrentItem(mappedSections[0]?.items[0] || null);
     setLoading(false);
 
-    fetchProgresso();
+    await fetchProgresso();
+    await fetchTestResult();
   };
 
   const fetchProgresso = async () => {
@@ -86,6 +88,34 @@ function CourseContent() {
 
     setCompletedItems(items?.map(i => i.item_id) || []);
     setCompletedLoaded(true);
+  };
+
+  const fetchTestResult = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+    if (!userId) return;
+
+    const { data: tests } = await supabase
+      .from("course_tests")
+      .select("id")
+      .eq("course_id", id)
+      .limit(1);
+
+    if (!tests || tests.length === 0) {
+      setTestPassed(false);
+      return;
+    }
+
+    const testId = tests[0].id;
+
+    const { data: result } = await supabase
+      .from("test_results")
+      .select("passed")
+      .eq("test_id", testId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    setTestPassed(result?.passed === true);
   };
 
   const toggleSection = (sectionId) => {
@@ -177,7 +207,7 @@ function CourseContent() {
         <h2 className="mb-4">Conteúdo do Curso</h2>
 
         {/* Botão Concluir Curso aparece logo acima da barra de progresso */}
-        {allCompleted && (
+        {allCompleted && !testPassed && (
           <div className="mb-3 d-flex justify-content-center">
             <Button
               variant="success"
@@ -185,6 +215,12 @@ function CourseContent() {
             >
               Concluir Curso
             </Button>
+          </div>
+        )}
+
+        {testPassed && (
+          <div className="mb-3 d-flex justify-content-center">
+            <span className="badge bg-success fs-5">Curso concluído ✔️</span>
           </div>
         )}
 
