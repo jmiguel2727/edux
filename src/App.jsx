@@ -21,6 +21,7 @@ import CategoriaCursos from "./pages/CategoriaCursos";
 import AdminCourseContent from "./pages/AdminCourseContent";
 import Wrapper from "./components/Wrapper";
 import Logout from "./components/Logout";
+import CourseTest from "./pages/CourseTest";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
         <Route path="/sell-course" element={<Wrapper><SellCourse /> </Wrapper>} />
         <Route path="/curso/:id" element={<Wrapper><CoursePreview /></Wrapper>} />
         <Route path="/curso/:id/conteudo" element={<Wrapper><CourseContent /></Wrapper>} />
+        <Route path="/curso/:id/teste/fazer" element={<Wrapper><CourseTest /></Wrapper>} />
         <Route path="/categoria/:nome" element={<Wrapper><CategoriaCursos /></Wrapper>} />
 
         {/* Páginas exclusivas de administração */}

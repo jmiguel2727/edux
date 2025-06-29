@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import supabase from "../helper/supabaseClient";
@@ -9,6 +9,7 @@ import { Button, Modal, ProgressBar } from "react-bootstrap";
 
 function CourseContent() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [sections, setSections] = useState([]);
   const [currentItem, setCurrentItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -166,11 +167,26 @@ function CourseContent() {
 
   const percent = totalItems > 0 ? Math.round((completedItems.length / totalItems) * 100) : 0;
 
+  // Se completou todas as aulas
+  const allCompleted = totalItems > 0 && completedItems.length === totalItems;
+
   return (
     <>
       <Header />
       <div className="container py-5" style={{ minHeight: "70vh" }}>
         <h2 className="mb-4">Conteúdo do Curso</h2>
+
+        {/* Botão Concluir Curso aparece logo acima da barra de progresso */}
+        {allCompleted && (
+          <div className="mb-3 d-flex justify-content-center">
+            <Button
+              variant="success"
+              onClick={() => navigate(`/curso/${id}/teste/fazer`)}
+            >
+              Concluir Curso
+            </Button>
+          </div>
+        )}
 
         <ProgressBar
           now={percent}
@@ -225,7 +241,7 @@ function CourseContent() {
                                 className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3 ${currentItem?.id === item.id ? "active" : ""}`}
                               >
                                 <span onClick={() => handleItemClick(item)} style={{ cursor: "pointer" }}>
-                                  <FaRegCirclePlay size={12}/> {item.title}
+                                  <FaRegCirclePlay size={12} /> {item.title}
                                 </span>
                                 <div>
                                   {completedItems.includes(item.id) && <span className="text-success me-2">✔️</span>}
@@ -243,7 +259,7 @@ function CourseContent() {
                                       rel="noreferrer"
                                       className="text-muted small text-decoration-none ms-2"
                                     >
-                                      <GoPaste size={14}/> anexo
+                                      <GoPaste size={14} /> anexo
                                     </a>
                                   )}
                                 </div>
