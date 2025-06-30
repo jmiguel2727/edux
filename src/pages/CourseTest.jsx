@@ -197,7 +197,7 @@ export default function CourseTest() {
 
               {currentIndex < questions.length - 1 ? (
                 <Button
-                  variant="primary"
+                  variant="secondary"
                   onClick={() => setCurrentIndex((idx) => Math.min(idx + 1, questions.length - 1))}
                 >
                   <FaLongArrowAltRight />

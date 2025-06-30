@@ -23,6 +23,7 @@ function CourseContent() {
   const [progressId, setProgressId] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const [testPassed, setTestPassed] = useState(false);
+  const [courseTitle, setCourseTitle] = useState("");
 
   useEffect(() => {
     document.title = "Conteúdo do Curso | EDUX";
@@ -31,6 +32,17 @@ function CourseContent() {
 
   const fetchConteudo = async () => {
     setLoading(true);
+
+    // Buscar o título do curso
+    const { data: cursoData, error: cursoError } = await supabase
+      .from("courses")
+      .select("title")
+      .eq("id", id)
+      .single();
+
+    if (!cursoError && cursoData) {
+      setCourseTitle(cursoData.title);
+    }
 
     const { data: secData } = await supabase
       .from("sections")
@@ -60,6 +72,7 @@ function CourseContent() {
     await fetchProgresso();
     await fetchTestResult();
   };
+
 
   const fetchProgresso = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -205,7 +218,8 @@ function CourseContent() {
     <>
       <Header />
       <div className="container py-5" style={{ minHeight: "70vh" }}>
-        <h2 className="mb-4">Conteúdo do Curso</h2>
+        <h2 className="mb-4">{courseTitle}</h2>
+
 
         {/* Botão Concluir Curso aparece logo acima da barra de progresso */}
         {allCompleted && !testPassed && (
@@ -236,7 +250,6 @@ function CourseContent() {
         ) : (
           <div className="d-flex bg-white shadow rounded" style={{ overflow: "hidden" }}>
             <div className="p-4" style={{ flex: "0 0 70%", borderRight: "1px solid #dee2e6" }}>
-              <h5 className="mb-3">{currentItem?.title}</h5>
               {currentItem?.video_path ? (
                 <video
                   key={currentItem.id}
@@ -255,7 +268,6 @@ function CourseContent() {
             </div>
 
             <div className="p-3" style={{ flex: "0 0 30%", background: "#f9f9f9" }}>
-              <h6 className="mb-3">Secções</h6>
               <div className="accordion" id="courseAccordion">
                 {sections.map((sec) => (
                   <div className="accordion-item mb-2 border-0" key={sec.id}>
