@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import supabase from "../helper/supabaseClient";
 import { GoPaste } from "react-icons/go";
 import { FaRegCirclePlay } from "react-icons/fa6";
-import { Button, Modal, ProgressBar } from "react-bootstrap";
+import { Button, ProgressBar } from "react-bootstrap";
 import { AiFillEye, AiFillEyeInvisible} from "react-icons/ai";
 
 function CourseContent() {
@@ -17,9 +17,6 @@ function CourseContent() {
   const [openSectionId, setOpenSectionId] = useState(null);
   const [completedItems, setCompletedItems] = useState([]);
   const [completedLoaded, setCompletedLoaded] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [modalItem, setModalItem] = useState(null);
-  const [modalAction, setModalAction] = useState(null);
   const [progressId, setProgressId] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const [testPassed, setTestPassed] = useState(false);
@@ -140,53 +137,35 @@ function CourseContent() {
     setCurrentItem(item);
   };
 
-  const openCheckModal = (itemId, action) => {
-    setModalItem(itemId);
-    setModalAction(action);
-    setShowModal(true);
-  };
+  const toggleCompleted = async (itemId) => {
+    if (!progressId) return;
 
-  const handleConfirmModal = async () => {
-    if (!progressId || !modalItem) {
-      setShowModal(false);
-      return;
-    }
+    const isDone = completedItems.includes(itemId);
 
-    const completed = modalAction === "check";
-
+    // existe registo?
     const { data: existing } = await supabase
       .from("progress_items")
-      .select("*")
+      .select("id")
       .eq("progress_id", progressId)
-      .eq("item_id", modalItem)
+      .eq("item_id", itemId)
       .maybeSingle();
 
-    if (existing) {
-      if (completed) {
-        await supabase
-          .from("progress_items")
-          .update({
-            completed: true,
-            completed_at: new Date()
-          })
-          .eq("id", existing.id);
-      } else {
-        await supabase
-          .from("progress_items")
-          .delete()
-          .eq("id", existing.id);
-      }
-    } else if (completed) {
-      await supabase
-        .from("progress_items")
-        .insert({
-          progress_id: progressId,
-          item_id: modalItem,
-          completed: true,
-          completed_at: new Date()
-        });
+    if (existing && isDone) {
+      // REMOVER
+      await supabase.from("progress_items").delete().eq("id", existing.id);
+      setCompletedItems(prev => prev.filter(id => id !== itemId));
+    } else if (!isDone) {
+      // MARCAR
+      await supabase.from("progress_items").insert({
+        progress_id: progressId,
+        item_id: itemId,
+        completed: true,
+        completed_at: new Date()
+      });
+      setCompletedItems(prev => [...prev, itemId]);
     }
 
+    // actualizar contador no “progress”
     const { count } = await supabase
       .from("progress_items")
       .select("id", { count: "exact", head: true })
@@ -197,152 +176,135 @@ function CourseContent() {
       .from("progress")
       .update({ completed_items: count })
       .eq("id", progressId);
-
-    setCompletedItems(prev => {
-      if (completed) {
-        return [...prev, modalItem];
-      } else {
-        return prev.filter(id => id !== modalItem);
-      }
-    });
-
-    setShowModal(false);
   };
 
+
+ 
   const percent = totalItems > 0 ? Math.round((completedItems.length / totalItems) * 100) : 0;
 
   // Se completou todas as aulas
   const allCompleted = totalItems > 0 && completedItems.length === totalItems;
 
   return (
+      
     <>
       <Header />
       <div className="container py-5" style={{ minHeight: "70vh" }}>
         <h2 className="mb-4">{courseTitle}</h2>
 
-
-        {/* Botão Concluir Curso aparece logo acima da barra de progresso */}
-        {allCompleted && !testPassed && (
-          <div className="mb-3 d-flex justify-content-center">
-            <Button
-              variant="success"
-              onClick={() => navigate(`/curso/${id}/teste/fazer`)}
-            >
-              Concluir Curso
-            </Button>
-          </div>
-        )}
-
-        {testPassed && (
-          <div className="mb-3 d-flex justify-content-center">
-            <span className="badge bg-success fs-5">Curso concluído ✔️</span>
-          </div>
-        )}
-
         <ProgressBar
           now={percent}
-          label={`${percent}% concluído`}
+          label={`${percent}% visto`}
           className="mb-4"
         />
 
         {loading ? (
-          <p>A carregar conteúdo...</p>
+        <p>A carregar conteúdo...</p>
         ) : (
-          <div className="d-flex bg-white shadow rounded" style={{ overflow: "hidden" }}>
-            <div className="p-4" style={{ flex: "0 0 70%", borderRight: "1px solid #dee2e6" }}>
-              {currentItem?.video_path ? (
-                <video
-                  key={currentItem.id}
-                  controls
-                  className="w-100 rounded"
-                  style={{ maxHeight: "420px" }}
-                >
-                  <source src={currentItem.video_path} type="video/mp4" />
-                  O teu navegador não suporta vídeo embutido.
-                </video>
-              ) : (
-                <div className="d-flex justify-content-center align-items-center" style={{ height: "300px", backgroundColor: "#f8f9fa", borderRadius: "8px" }}>
-                  <p className="text-muted mb-0">Nenhum vídeo disponível para este item.</p>
-                </div>
-              )}
-            </div>
+          <>
+            <div className="d-flex bg-white shadow rounded" style={{ overflow: "hidden" }}>
+              {/* Conteúdo vídeo */}
+              <div className="p-4" style={{ flex: "0 0 70%", borderRight: "1px solid #dee2e6" }}>
+                {currentItem?.video_path ? (
+                  <video key={currentItem.id} controls className="w-100 rounded" style={{ maxHeight: "420px" }}>
+                    <source src={currentItem.video_path} type="video/mp4" />
+                    O teu navegador não suporta vídeo embutido.
+                  </video>
+                ) : (
+                  <div className="d-flex justify-content-center align-items-center" style={{ height: "300px", backgroundColor: "#f8f9fa", borderRadius: "8px" }}>
+                    <p className="text-muted mb-0">Nenhum vídeo disponível para este item.</p>
+                  </div>
+                )}
+              </div>
 
-            <div className="p-3" style={{ flex: "0 0 30%", background: "#f9f9f9" }}>
-              <div className="accordion" id="courseAccordion">
-                {sections.map((sec) => (
-                  <div className="accordion-item mb-2 border-0" key={sec.id}>
-                    <h2 className="accordion-header">
-                      <button
-                        className={`accordion-button ${openSectionId === sec.id ? "" : "collapsed"}`}
-                        type="button"
-                        onClick={() => toggleSection(sec.id)}
-                      >
-                        {sec.title}
-                      </button>
-                    </h2>
-                    <div className={`accordion-collapse collapse ${openSectionId === sec.id ? "show" : ""}`}>
-                      <div className="accordion-body p-2">
-                        {completedLoaded ? (
-                          <ul className="list-group list-group-flush">
-                            {sec.items.map((item) => (
-                              <li
-                                key={item.id} 
-                                className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3 ${currentItem?.id === item.id ? "active" : ""}`}
-                              >
-                                <span onClick={() => handleItemClick(item)} style={{ cursor: "pointer" }}>
-                                  <FaRegCirclePlay size={12} /> {item.title}
-                                </span>
-                                <div>
-                                  <Button
-                                    size="sm"
-                                    variant={completedItems.includes(item.id) ? "success" : "warning"}
-                                    onClick={() => openCheckModal(item.id, completedItems.includes(item.id) ? "uncheck" : "check")}
-                                  >
-                                    {completedItems.includes(item.id) ? (
-                                      <AiFillEye />
-                                    ) : (
-                                      <AiFillEyeInvisible color="white" />
-                                    )}
-                                  </Button>
-                                  {item.file_path && (
-                                    <a
-                                      href={item.file_path}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="text-muted small text-decoration-none ms-2"
+              {/* Sidebar com secções */}
+              <div className="p-3" style={{ flex: "0 0 30%", background: "#f9f9f9" }}>
+                <div className="accordion" id="courseAccordion">
+                  {sections.map((sec) => (
+                    <div key={sec.id} className="accordion-item mb-2 border-0">
+                      <h2 className="accordion-header">
+                        <button
+                          className={`accordion-button fw-bold
+                                      ${openSectionId === sec.id ? "text-decoration-underline no-bg" : "collapsed"}`}
+                          type="button"
+                          onClick={() => toggleSection(sec.id)}
+                        >
+                          {sec.title}
+                        </button>
+                      </h2>
+                      <div className={`accordion-collapse collapse ${openSectionId === sec.id ? "show" : ""}`}>
+                        <div className="accordion-body p-2">
+                          {completedLoaded ? (
+                            <ul className="list-group list-group-flush">
+                              {sec.items.map((item) => (
+                                <li
+                                  key={item.id}
+                                  className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3 ${
+                                    currentItem?.id === item.id ? "active" : ""
+                                  }`}
+                                >
+                                  <span onClick={() => handleItemClick(item)} style={{ cursor: "pointer" }}>
+                                    <FaRegCirclePlay size={12} /> {item.title}
+                                  </span>
+                                  <div>
+                                    <Button
+                                      size="sm"
+                                      variant={completedItems.includes(item.id) ? "success" : "warning"}
+                                      onClick={() => toggleCompleted(item.id)}
                                     >
-                                      <GoPaste size={14} /> anexo
-                                    </a>
-                                  )}
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-muted">A carregar progresso...</p>
-                        )}
+                                      {completedItems.includes(item.id) ? (
+                                        <AiFillEye />
+                                      ) : (
+                                        <AiFillEyeInvisible color="white" />
+                                      )}
+                                    </Button>
+                                    {item.file_path && (
+                                      <a
+                                        href={item.file_path}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-muted small text-decoration-none ms-2"
+                                      >
+                                        <GoPaste size={14} /> anexo
+                                      </a>
+                                    )}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-muted">A carregar progresso...</p>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+                {/* Área “Concluir Curso” / estado concluído  ─ fica no rodapé da sidebar */}
+                {allCompleted && (
+                  <div className="mt-3 d-flex justify-content-center">
+                    {testPassed ? (
+                      /* Mensagem de curso concluído */
+                      <span className="badge bg-success fs-5">Curso concluído</span>
+                    ) : (
+                      /* Botão vermelho para iniciar o teste final */
+                      <Button
+                        className="badge fs-5"
+                        variant="warning"
+                        onClick={() => navigate(`/curso/${id}/teste/fazer`)}
+                        style={{ minWidth: "180px" }}
+                      >
+                        Realizar Teste
+                      </Button>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmação</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Tem a certeza que pretende {modalAction === "check" ? "marcar" : "remover"} esta aula como concluída?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
-          <Button variant="primary" onClick={handleConfirmModal}>Confirmar</Button>
-        </Modal.Footer>
-      </Modal>
 
       <Footer />
     </>

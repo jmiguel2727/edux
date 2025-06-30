@@ -139,12 +139,12 @@ export default function CourseTest() {
         <div className="container py-5">
           <h2>Resultado do Teste</h2>
           <p>
-            Obtiveste {result.score} de {questions.length} pontos.
+            Obtiveste {result.score} de {questions.length} corretas.
           </p>
           {result.passed ? (
             <p className="text-success">Parabéns! Passaste o teste.</p>
           ) : (
-            <p className="text-danger">Não passaste. Tenta novamente.</p>
+            <p className="text-danger">Não passaste! Estuda mais!</p>
           )}
           <button className="btn btn-primary" onClick={() => navigate(`/curso/${courseId}/conteudo`)}>
             Voltar ao curso
@@ -204,11 +204,12 @@ export default function CourseTest() {
                 </Button>
               ) : (
                 <Button
+                  className="badge fs-5"
                   variant="success"
                   onClick={handleSubmit}
                   disabled={submitting}
                 >
-                  {submitting ? "A Submeter..." : "Submeter Teste"}
+                  {submitting ? "A Submeter..." : "Submeter"}
                 </Button>
               )}
             </Card.Footer>
