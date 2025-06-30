@@ -6,6 +6,7 @@ import supabase from "../helper/supabaseClient";
 import { GoPaste } from "react-icons/go";
 import { FaRegCirclePlay } from "react-icons/fa6";
 import { Button, Modal, ProgressBar } from "react-bootstrap";
+import { AiFillEye, AiFillEyeInvisible} from "react-icons/ai";
 
 function CourseContent() {
   const { id } = useParams();
@@ -273,20 +274,23 @@ function CourseContent() {
                           <ul className="list-group list-group-flush">
                             {sec.items.map((item) => (
                               <li
-                                key={item.id}
+                                key={item.id} 
                                 className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3 ${currentItem?.id === item.id ? "active" : ""}`}
                               >
                                 <span onClick={() => handleItemClick(item)} style={{ cursor: "pointer" }}>
                                   <FaRegCirclePlay size={12} /> {item.title}
                                 </span>
                                 <div>
-                                  {completedItems.includes(item.id) && <span className="text-success me-2">✔️</span>}
                                   <Button
                                     size="sm"
-                                    variant={completedItems.includes(item.id) ? "outline-danger" : "outline-success"}
+                                    variant={completedItems.includes(item.id) ? "success" : "warning"}
                                     onClick={() => openCheckModal(item.id, completedItems.includes(item.id) ? "uncheck" : "check")}
                                   >
-                                    {completedItems.includes(item.id) ? "Remover" : "Concluir"}
+                                    {completedItems.includes(item.id) ? (
+                                      <AiFillEye />
+                                    ) : (
+                                      <AiFillEyeInvisible color="white" />
+                                    )}
                                   </Button>
                                   {item.file_path && (
                                     <a

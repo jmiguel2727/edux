@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import supabase from "../helper/supabaseClient";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { Card, Button } from "react-bootstrap";
+import { FaLongArrowAltLeft, FaLongArrowAltRight } from "react-icons/fa";
 
 export default function CourseTest() {
   const { id: courseId } = useParams();
@@ -13,6 +15,7 @@ export default function CourseTest() {
   const [answers, setAnswers] = useState({}); // { questionId: answerId }
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null); // { score, passed }
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchTestData = async () => {
@@ -82,8 +85,8 @@ export default function CourseTest() {
         if (correct) score += 1;
       }
 
-      const passThreshold = 7;
-      const passed = score >= passThreshold;
+      const passPercentage = (score / questions.length) * 100;
+      const passed = passPercentage >= 70;
 
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
@@ -143,35 +146,38 @@ export default function CourseTest() {
           ) : (
             <p className="text-danger">Não passaste. Tenta novamente.</p>
           )}
-            <button className="btn btn-primary" onClick={() => navigate(`/curso/${courseId}/conteudo`)}>
+          <button className="btn btn-primary" onClick={() => navigate(`/curso/${courseId}/conteudo`)}>
             Voltar ao curso
-            </button>
-
+          </button>
         </div>
         <Footer />
       </>
     );
   }
 
+  const currentQuestion = questions[currentIndex];
+
   return (
     <>
       <Header />
-      <div className="container py-5">
-        <h2>Teste Final do Curso</h2>
-        <form>
-          {questions.map((q) => (
-            <div key={q.id} className="mb-4">
-              <p><strong>{q.question}</strong></p>
-              {q.course_answers.map((a) => (
-                <div key={a.id} className="form-check">
+      <div className="container py-5 d-flex justify-content-center">
+        <Card style={{ width: "600px", minHeight: "350px" }}>
+          <Card.Body className="d-flex flex-column justify-content-between" style={{ minHeight: "280px" }}>
+            <div>
+              <div className="d-flex justify-content-between mb-3">
+                <h5 className="card-title mb-0">Pergunta {currentIndex + 1} / {questions.length}</h5>
+              </div>
+              <p><strong>{currentQuestion?.question}</strong></p>
+              {currentQuestion?.course_answers.map((a) => (
+                <div className="form-check" key={a.id}>
                   <input
                     className="form-check-input"
                     type="radio"
-                    name={`question-${q.id}`}
+                    name={`question-${currentQuestion.id}`}
                     id={`answer-${a.id}`}
                     value={a.id}
-                    checked={answers[q.id] === a.id}
-                    onChange={() => handleSelectAnswer(q.id, a.id)}
+                    checked={answers[currentQuestion.id] === a.id}
+                    onChange={() => handleSelectAnswer(currentQuestion.id, a.id)}
                   />
                   <label className="form-check-label" htmlFor={`answer-${a.id}`}>
                     {a.answer}
@@ -179,16 +185,35 @@ export default function CourseTest() {
                 </div>
               ))}
             </div>
-          ))}
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={submitting}
-          >
-            {submitting ? "A Submeter..." : "Submeter Teste"}
-          </button>
-        </form>
+
+            <Card.Footer className="d-flex justify-content-center align-items-center gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setCurrentIndex((idx) => Math.max(idx - 1, 0))}
+                disabled={currentIndex === 0}
+              >
+                <FaLongArrowAltLeft />
+              </Button>
+
+              {currentIndex < questions.length - 1 ? (
+                <Button
+                  variant="primary"
+                  onClick={() => setCurrentIndex((idx) => Math.min(idx + 1, questions.length - 1))}
+                >
+                  <FaLongArrowAltRight />
+                </Button>
+              ) : (
+                <Button
+                  variant="success"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                >
+                  {submitting ? "A Submeter..." : "Submeter Teste"}
+                </Button>
+              )}
+            </Card.Footer>
+          </Card.Body>
+        </Card>
       </div>
       <Footer />
     </>
